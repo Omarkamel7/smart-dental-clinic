@@ -4,6 +4,12 @@
 
 ---
 
+### 📲 تحميل تطبيق الأندرويد المباشر (Download APK):
+[![Download Android APK](https://img.shields.io/badge/Download-Android%20APK-0284c7?style=for-the-badge&logo=android&logoColor=white)](https://github.com/Omarkamel7/smart-dental-clinic/releases/download/v1.0.0/smart-dental-clinic.apk)
+[![Expo Build](https://img.shields.io/badge/Expo-Live%20Install-0d9488?style=for-the-badge&logo=expo&logoColor=white)](https://expo.dev/accounts/omarsala7s-team/projects/smart-dental-clinic/builds/ac418cf4-9d1b-4313-843a-eb1e2b53c4c3)
+
+---
+
 ## 📱 كيفية تشغيل التطبيق على الهاتف المحمول (Android & iOS):
 
 ### الطريقة الأولى: التشغيل المباشر عبر تطبيق Expo Go (الأسهل والأسرع)
