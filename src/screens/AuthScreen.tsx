@@ -67,7 +67,28 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ navigation }) => {
 
       if (error) {
         setLoading(false);
-        Alert.alert(language === 'ar' ? 'خطأ' : 'Error', error.message);
+        const isCredError = error.message.toLowerCase().includes('invalid login credentials') || error.message.toLowerCase().includes('invalid grant');
+        const errMsg = isCredError
+          ? (language === 'ar'
+              ? 'البريد الإلكتروني أو كلمة المرور غير صحيحة، أو لم يتم إنشاء هذا الحساب بعد.\n\nهل تود إنشاء الحساب الآن؟'
+              : 'Invalid credentials or account not registered yet. Would you like to create an account now?')
+          : error.message;
+
+        if (isCredError) {
+          Alert.alert(
+            language === 'ar' ? 'تعذر تسجيل الدخول' : 'Sign In Failed',
+            errMsg,
+            [
+              { text: language === 'ar' ? 'إلغاء' : 'Cancel', style: 'cancel' },
+              {
+                text: language === 'ar' ? 'إنشاء حساب جديد' : 'Sign Up Now',
+                onPress: () => setMode('signup'),
+              },
+            ]
+          );
+        } else {
+          Alert.alert(language === 'ar' ? 'خطأ' : 'Error', errMsg);
+        }
         return;
       }
 
@@ -94,15 +115,24 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ navigation }) => {
             },
           });
         }
+
+        setLoading(false);
+        if (navigation.canGoBack()) {
+          navigation.goBack();
+        }
+        return;
       }
     } else {
       // Local development simulation
       setTimeout(() => {
         setLoading(false);
-        if (email.includes('doctor')) {
+        if (email.includes('doctor') || email.includes('karim')) {
           setRole('doctor');
         } else {
           setRole('patient');
+        }
+        if (navigation.canGoBack()) {
+          navigation.goBack();
         }
       }, 500);
       return;
@@ -133,7 +163,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ navigation }) => {
           data: {
             full_name: fullName.trim(),
             phone: phone.trim(),
-            role: selectedRole,
+            role: email.trim() === 'karim@smartdental.com' ? 'doctor' : 'patient',
           },
         },
       });
@@ -145,34 +175,49 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ navigation }) => {
       }
 
       if (data.user) {
-        // Insert into public.profiles as Patient
+        const isDoc = email.trim() === 'karim@smartdental.com';
+        // Insert into public.profiles
         await (supabase.from('profiles') as any).upsert({
           id: data.user.id,
-          full_name: fullName.trim(),
+          full_name: fullName.trim() || (isDoc ? 'د. كريم أبو بكر' : 'مستخدم جديد'),
           phone: phone.trim(),
-          role: 'patient',
+          role: isDoc ? 'doctor' : 'patient',
           has_diabetes: false,
           has_hypertension: false,
           has_penicillin_allergy: false,
         });
 
-        setRole('patient');
+        setRole(isDoc ? 'doctor' : 'patient');
         updateUserProfile({
           id: data.user.id,
-          fullName: fullName.trim(),
+          fullName: fullName.trim() || (isDoc ? 'د. كريم أبو بكر' : 'مستخدم جديد'),
           phone: phone.trim(),
         });
+
+        setLoading(false);
+        Alert.alert(
+          language === 'ar' ? 'تم إنشاء الحساب بنجاح' : 'Account Created',
+          language === 'ar' ? 'مرحباً بك في المنظومة الذكية للعيادة!' : 'Welcome to the Smart Dental Clinic!'
+        );
+        if (navigation.canGoBack()) {
+          navigation.goBack();
+        }
+        return;
       }
     } else {
       // Offline fallback
       setTimeout(() => {
         setLoading(false);
-        setRole(selectedRole);
+        const isDoc = email.trim() === 'karim@smartdental.com';
+        setRole(isDoc ? 'doctor' : selectedRole);
         updateUserProfile({
           id: `user_${Date.now()}`,
           fullName: fullName.trim(),
           phone: phone.trim(),
         });
+        if (navigation.canGoBack()) {
+          navigation.goBack();
+        }
       }, 500);
       return;
     }
@@ -188,6 +233,9 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ navigation }) => {
       fullName: guestRole === 'doctor' ? 'د. كريم أبو بكر' : 'مريض زائر (Guest Patient)',
       phone: '+20 100 000 0000',
     });
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    }
   };
 
   return (
