@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   Image,
+  Alert,
 } from 'react-native';
 import {
   Stethoscope,
@@ -30,7 +31,7 @@ interface DoctorDashboardScreenProps {
 export const DoctorDashboardScreen: React.FC<DoctorDashboardScreenProps> = ({
   navigation,
 }) => {
-  const { t, language, complaints, appointments, doctorInbox, isRTL } = useApp();
+  const { t, language, complaints, appointments, doctorInbox, setRole, isRTL } = useApp();
 
   const pendingComplaints = complaints.filter((c) => c.status === 'pending');
   const diagnosedComplaints = complaints.filter(
@@ -150,6 +151,24 @@ export const DoctorDashboardScreen: React.FC<DoctorDashboardScreenProps> = ({
             </Text>
           </TouchableOpacity>
         </View>
+
+        {/* Live Patient View Button */}
+        <TouchableOpacity
+          style={styles.previewAsPatientBtn}
+          onPress={() => {
+            setRole('patient');
+            Alert.alert(
+              language === 'ar' ? 'وضع المعاينة كـ مريض' : 'Patient Preview Mode',
+              language === 'ar'
+                ? 'أنت الآن تستعرض التطبيق تماماً كما يظهر للمريض. للعودة للوحة الطبيب في أي وقت، افتح شاشة "حسابي" واضغط "تسجيل دخول الطبيب".'
+                : 'You are now viewing the app as a patient. To return to the doctor dashboard, open Profile and sign in.'
+            );
+          }}
+        >
+          <Text style={styles.previewAsPatientBtnText}>
+            {language === 'ar' ? '👁️ معاينة الصفحة الرئيسية كما تظهر للمريض' : '👁️ Preview Home Page as Patient'}
+          </Text>
+        </TouchableOpacity>
       </View>
 
       {/* Section 1: Live Patient Consultations & Chat Inbox */}
@@ -705,5 +724,20 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '800',
     color: '#166534',
+  },
+  previewAsPatientBtn: {
+    backgroundColor: '#eff6ff',
+    borderWidth: 1.5,
+    borderColor: '#93c5fd',
+    borderRadius: 12,
+    paddingVertical: 11,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 10,
+  },
+  previewAsPatientBtnText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: Colors.primaryDark,
   },
 });

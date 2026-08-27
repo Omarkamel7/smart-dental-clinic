@@ -43,6 +43,7 @@ export const ProfileScreen: React.FC = () => {
     setRole,
     currentUser,
     updateUserProfile,
+    clinicSettings,
   } = useApp();
 
   const [loading, setLoading] = useState(false);
@@ -383,51 +384,59 @@ export const ProfileScreen: React.FC = () => {
         </TouchableOpacity>
       </View>
 
-      {/* Clinic Info */}
-      <View style={styles.card}>
-        <View style={styles.cardHeader}>
-          <Info size={18} color={Colors.primary} />
-          <Text style={styles.cardTitle}>
-            {language === 'ar' ? 'عن العيادة والمواعيد' : 'Clinic Info'}
-          </Text>
-        </View>
+      {/* Clinic Info (Customized & Toggled by Doctor) */}
+      {clinicSettings.showClinicInfo !== false && (
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <Info size={18} color={Colors.primary} />
+            <Text style={styles.cardTitle}>
+              {language === 'ar' ? 'عن العيادة والمواعيد' : 'Clinic Info'}
+            </Text>
+          </View>
 
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>
-            {language === 'ar' ? 'اسم العيادة:' : 'Clinic Name:'}
-          </Text>
-          <Text style={styles.infoValue}>
-            {language === 'ar' ? CLINIC_INFO.nameAr : CLINIC_INFO.nameEn}
-          </Text>
-        </View>
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>
+              {language === 'ar' ? 'اسم العيادة:' : 'Clinic Name:'}
+            </Text>
+            <Text style={styles.infoValue}>
+              {clinicSettings.doctorName ? `عيادة ${clinicSettings.doctorName}` : (language === 'ar' ? CLINIC_INFO.nameAr : CLINIC_INFO.nameEn)}
+            </Text>
+          </View>
 
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>
-            {language === 'ar' ? 'الهاتف:' : 'Phone:'}
-          </Text>
-          <Text style={[styles.infoValue, { writingDirection: 'ltr' }]}>
-            {CLINIC_INFO.phone}
-          </Text>
-        </View>
+          {!!clinicSettings.phoneNumber && (
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>
+                {language === 'ar' ? 'الهاتف:' : 'Phone:'}
+              </Text>
+              <Text style={[styles.infoValue, { writingDirection: 'ltr' }]}>
+                {clinicSettings.phoneNumber}
+              </Text>
+            </View>
+          )}
 
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>
-            {language === 'ar' ? 'مواعيد العمل:' : 'Working Hours:'}
-          </Text>
-          <Text style={styles.infoValue}>
-            {language === 'ar' ? CLINIC_INFO.workingHoursAr : CLINIC_INFO.workingHoursEn}
-          </Text>
-        </View>
+          {!!clinicSettings.workingHours && (
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>
+                {language === 'ar' ? 'مواعيد العمل:' : 'Working Hours:'}
+              </Text>
+              <Text style={styles.infoValue}>
+                {clinicSettings.workingHours}
+              </Text>
+            </View>
+          )}
 
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>
-            {language === 'ar' ? 'العنوان:' : 'Address:'}
-          </Text>
-          <Text style={styles.infoValue}>
-            {language === 'ar' ? CLINIC_INFO.addressAr : CLINIC_INFO.addressEn}
-          </Text>
+          {!!clinicSettings.locationAddress && (
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>
+                {language === 'ar' ? 'العنوان:' : 'Address:'}
+              </Text>
+              <Text style={styles.infoValue}>
+                {clinicSettings.locationAddress}
+              </Text>
+            </View>
+          )}
         </View>
-      </View>
+      )}
 
       {/* Discreet Doctor / Admin Portal Login */}
       {role === 'patient' && (

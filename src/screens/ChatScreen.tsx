@@ -43,7 +43,7 @@ interface ChatScreenProps {
 
 export const ChatScreen: React.FC<ChatScreenProps> = ({ route, navigation }) => {
   const consultationId = route?.params?.consultationId || 'comp_01';
-  const { messages, sendMessage, role, t, language, complaints, isRTL } = useApp();
+  const { messages, sendMessage, role, t, language, complaints, isRTL, currentUser, savePatientQuickProfile } = useApp();
 
   const [inputMessage, setInputMessage] = useState('');
   const [selectedImageUri, setSelectedImageUri] = useState<string | null>(null);
@@ -55,6 +55,12 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ route, navigation }) => 
   const [sound, setSound] = useState<Audio.Sound | null>(null);
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [isSending, setIsSending] = useState(false);
+
+  // Patient Identification States
+  const hasPatientInfo = !!(currentUser?.fullName && currentUser?.phone && currentUser.fullName !== 'مريض عيادة د. كريم' && currentUser.phone.trim().length > 3);
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [patientNameInput, setPatientNameInput] = useState(currentUser?.fullName || '');
+  const [patientPhoneInput, setPatientPhoneInput] = useState(currentUser?.phone || '');
 
   const flatListRef = useRef<FlatList>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -113,8 +119,32 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ route, navigation }) => 
     };
   }, [sound]);
 
+  const checkPatientProfileBeforeAction = (): boolean => {
+    if (role === 'doctor') return true;
+    if (!hasPatientInfo) {
+      setShowProfileModal(true);
+      return false;
+    }
+    return true;
+  };
+
+  const handleSaveProfileAndContinue = async () => {
+    if (!patientNameInput.trim() || !patientPhoneInput.trim()) {
+      Alert.alert(
+        language === 'ar' ? 'تنبيه' : 'Required Information',
+        language === 'ar'
+          ? 'يرجى إدخال اسمك ورقم هاتفك للبدء والمتابعة مع الطبيب'
+          : 'Please enter your name and phone number to start chatting'
+      );
+      return;
+    }
+    await savePatientQuickProfile(patientNameInput.trim(), patientPhoneInput.trim());
+    setShowProfileModal(false);
+  };
+
   // Handle Pick Image
   const handlePickImage = async () => {
+    if (!checkPatientProfileBeforeAction()) return;
     try {
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (status !== 'granted') {
@@ -143,6 +173,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ route, navigation }) => 
 
   // Handle Voice Recording
   const startVoiceRecording = async () => {
+    if (!checkPatientProfileBeforeAction()) return;
     try {
       const permission = await Audio.requestPermissionsAsync();
       if (!permission.granted) {
@@ -250,6 +281,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ route, navigation }) => 
 
   // Send Text / Image Message
   const handleSend = async () => {
+    if (!checkPatientProfileBeforeAction()) return;
     if (!inputMessage.trim() && !selectedImageUri) return;
     setIsSending(true);
     const textToSend = inputMessage.trim();
@@ -477,6 +509,34 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ route, navigation }) => 
         </View>
       </View>
 
+      {/* Unidentified Patient Top Banner */}
+      {role === 'patient' && !hasPatientInfo && (
+        <TouchableOpacity
+          onPress={() => setShowProfileModal(true)}
+          style={{
+            backgroundColor: '#eff6ff',
+            borderBottomWidth: 1,
+            borderBottomColor: '#93c5fd',
+            padding: 10,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
+        >
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 }}>
+            <Info size={18} color="#0284c7" />
+            <Text style={{ fontSize: 12, color: '#0369a1', fontWeight: '700', flex: 1 }}>
+              {language === 'ar'
+                ? 'يرجى تسجيل اسمك ورقم هاتفك أولاً لتتمكن من إرسال الرسائل للطبيب'
+                : 'Please enter your name and phone number to start chatting'}
+            </Text>
+          </View>
+          <Text style={{ fontSize: 11, color: '#0284c7', fontWeight: '900' }}>
+            {language === 'ar' ? 'تسجيل ✍️' : 'Register ✍️'}
+          </Text>
+        </TouchableOpacity>
+      )}
+
       {/* Messages List */}
       <FlatList
         ref={flatListRef}
@@ -609,6 +669,57 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ route, navigation }) => 
           )}
         </TouchableOpacity>
       </View>
+
+      {/* Patient Identification Modal */}
+      <Modal
+        visible={showProfileModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowProfileModal(false)}
+      >
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', padding: 20 }}>
+          <View style={{ backgroundColor: 'white', borderRadius: 20, padding: 22, ...Shadows.lg }}>
+            <Text style={{ fontSize: 16, fontWeight: '800', color: Colors.textPrimary, textAlign: 'center', marginBottom: 6 }}>
+              {language === 'ar' ? '👋 مرحباً بك في المحادثة المباشرة' : '👋 Welcome to Direct Chat'}
+            </Text>
+            <Text style={{ fontSize: 12, color: Colors.textSecondary, textAlign: 'center', marginBottom: 16, lineHeight: 18 }}>
+              {language === 'ar'
+                ? 'يرجى إدخال اسمك ورقم هاتفك أولاً لتتمكن من مراسلة د. كريم ومتابعة حالتك الطبية:'
+                : 'Please enter your name and phone number to message Dr. Karim:'}
+            </Text>
+
+            <Text style={{ fontSize: 12, fontWeight: '700', color: Colors.textPrimary, marginBottom: 4, textAlign: language === 'ar' ? 'right' : 'left' }}>
+              {language === 'ar' ? 'الاسم بالكامل:' : 'Full Name:'}
+            </Text>
+            <TextInput
+              style={{ backgroundColor: '#f8fafc', borderWidth: 1, borderColor: '#cbd5e1', borderRadius: 12, padding: 12, fontSize: 13, marginBottom: 12, textAlign: language === 'ar' ? 'right' : 'left' }}
+              placeholder={language === 'ar' ? 'مثال: محمد أحمد' : 'e.g. John Doe'}
+              value={patientNameInput}
+              onChangeText={setPatientNameInput}
+            />
+
+            <Text style={{ fontSize: 12, fontWeight: '700', color: Colors.textPrimary, marginBottom: 4, textAlign: language === 'ar' ? 'right' : 'left' }}>
+              {language === 'ar' ? 'رقم الهاتف / الواتساب:' : 'Phone / WhatsApp:'}
+            </Text>
+            <TextInput
+              style={{ backgroundColor: '#f8fafc', borderWidth: 1, borderColor: '#cbd5e1', borderRadius: 12, padding: 12, fontSize: 13, marginBottom: 18, textAlign: language === 'ar' ? 'right' : 'left' }}
+              placeholder="+20 100 000 0000"
+              keyboardType="phone-pad"
+              value={patientPhoneInput}
+              onChangeText={setPatientPhoneInput}
+            />
+
+            <TouchableOpacity
+              onPress={handleSaveProfileAndContinue}
+              style={{ backgroundColor: Colors.primary, padding: 14, borderRadius: 14, alignItems: 'center' }}
+            >
+              <Text style={{ color: 'white', fontWeight: '800', fontSize: 13 }}>
+                {language === 'ar' ? 'حفظ وبدء المحادثة المباشرة 💬' : 'Save & Start Chatting 💬'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
 
       {/* Full-Screen Image Preview Modal */}
       <Modal

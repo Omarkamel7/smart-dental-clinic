@@ -75,6 +75,7 @@ export const translations = {
     yearsExperience: 'سنوات خبرة',
     satisfiedPatients: 'مريض راضٍ',
     ratingScore: 'تقييم ممتاز',
+    promoBadgeDefault: '✨ مجاناً لفترة محدودة',
 
     // Complaint & Triage Screen
     complaintTitle: 'طلب تشخيص مبدئي للأسنان',
@@ -257,6 +258,7 @@ export const translations = {
     yearsExperience: 'Years Experience',
     satisfiedPatients: 'Happy Patients',
     ratingScore: 'Top Rated',
+    promoBadgeDefault: '✨ Free for a limited time',
 
     // Complaint & Triage Screen
     complaintTitle: 'Dental Complaint & Intake Form',

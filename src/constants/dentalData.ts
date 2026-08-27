@@ -172,6 +172,9 @@ export const DEFAULT_CLINIC_SETTINGS: ClinicSettings = {
   locationAddress: 'مصر الجديدة - القاهرة',
   locationMapsUrl: 'https://maps.google.com',
   workingHours: 'السبت - الخميس: 12:00 م - 10:00 م',
+  showClinicInfo: true,
+  promoBadgeEnabled: true,
+  promoBadgeText: '✨ مجاناً لفترة محدودة',
 };
 
 export const INITIAL_BEFORE_AFTER_CASES: BeforeAfterCase[] = [

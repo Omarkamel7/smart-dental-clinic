@@ -14,26 +14,28 @@ export interface AppVersionInfo {
 }
 
 export const APP_VERSION_DATA: AppVersionInfo = {
-  version: '1.1.0',
-  buildNumber: 110,
+  version: '1.2.0',
+  buildNumber: 120,
   releaseDate: '2026-08-27',
   channel: 'production',
-  latestVersion: '1.1.0',
+  latestVersion: '1.2.0',
   isUpdateAvailable: false,
   mandatoryUpdate: false,
   changelogAr: [
-    'إدارة ديناميكية كاملة لبيانات العيادة والطبيب ومواعيد العمل والصور',
-    'إدارة الخدمات والأسعار من لوحة الطبيب مع المزامنة الفورية',
-    'معرض الأعمال والنتائج (قبل وبعد) مع رفع صور الحالات من التطبيق',
-    'إزالة كافة البيانات الوهمية والاعتماد الكلي على قاعدة البيانات الحقيقية',
-    'اعتماد وتطبيق اللوجو الجديد فائق الدقة (Smart Dental HD Icon)',
+    'تخصيص كامل لخيارات نموذج الاستشارة وقائمة الأعراض والتاريخ الصحي من لوحة الطبيب',
+    'إمكانية التحكم في إظهار أو إخفاء كارت بيانات ومواعيد العيادة وتعديل محتواه',
+    'شارة العرض المجاني الترويجي ثلاثية الأبعاد (مجاناً لفترة محدودة) على الاستشارة والمحادثة مع تحكم الطبيب',
+    'إلزام المريض بإدخال الاسم ورقم الهاتف قبل بدء المراسلة المباشرة مع الطبيب',
+    'استبدال مخطط الأسنان القديم بمخطط الابتسامة والفكين التفاعلي فائق السلاسة',
+    'دعم كامل ومحسن للترجمة الفورية بين اللغتين العربية والإنجليزية',
   ],
   changelogEn: [
-    'Dynamic doctor & clinic profile management (Bio, photos, hours)',
-    'Realtime clinic services and price management portal',
-    'Before & After portfolio gallery with in-app photo uploads',
-    'Complete cleanup of mock data, 100% live database sync',
-    'Official high-definition Smart Dental logo and app icon',
+    'Doctor consultation form customizer for symptoms and medical history alerts',
+    'Toggle visibility and dynamic editor for clinic info & working hours card',
+    '3D Promotional ribbon badge (Free for a limited time) on consultation and direct chat',
+    'Mandatory patient name and phone identification before entering direct chat',
+    'New intuitive smiling dental arch interactive teeth selection',
+    'Enhanced bilingual synchronization between Arabic and English',
   ],
 };
 

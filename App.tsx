@@ -80,24 +80,13 @@ const PatientTabs = () => {
         }}
       />
       <Tab.Screen
-        name="ComplaintIntake"
+        name="NewConsultationTab"
         component={ComplaintIntakeScreen}
         options={{
           title: t.navConsultation,
           headerTitle: t.complaintTitle,
           tabBarIcon: ({ color, size }) => (
             <Stethoscope size={size} color={color} />
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="Appointments"
-        component={AppointmentsScreen}
-        options={{
-          title: t.navAppointments,
-          headerTitle: t.appointmentsTitle,
-          tabBarIcon: ({ color, size }) => (
-            <Calendar size={size} color={color} />
           ),
         }}
       />
@@ -176,17 +165,6 @@ const DoctorTabs = () => {
           headerTitle: t.doctorDashboardTitle,
           tabBarIcon: ({ color, size }) => (
             <Activity size={size} color={color} />
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="DoctorSchedule"
-        component={AppointmentsScreen}
-        options={{
-          title: t.navDoctorSchedule,
-          headerTitle: t.todaysAppointments,
-          tabBarIcon: ({ color, size }) => (
-            <Calendar size={size} color={color} />
           ),
         }}
       />

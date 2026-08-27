@@ -34,12 +34,14 @@ interface ComplaintIntakeScreenProps {
 }
 
 export const ComplaintIntakeScreen: React.FC<ComplaintIntakeScreenProps> = ({ navigation }) => {
-  const { t, language, currentUser, addComplaint } = useApp();
+  const { t, language, isRTL, currentUser, savePatientQuickProfile, addComplaint, createConsultationWithChat } = useApp();
 
   const [selectedTeeth, setSelectedTeeth] = useState<number[]>([]);
   const [selectedSymptoms, setSelectedSymptoms] = useState<string[]>([]);
   const [painLevel, setPainLevel] = useState<number>(5);
   const [description, setDescription] = useState('');
+  const [patientName, setPatientName] = useState(currentUser.fullName || '');
+  const [patientPhone, setPatientPhone] = useState(currentUser.phone || '');
   const [audioUri, setAudioUri] = useState<string | undefined>(undefined);
   const [photoUris, setPhotoUris] = useState<string[]>([]);
   const [xrayUris, setXrayUris] = useState<string[]>([]);
@@ -136,9 +138,21 @@ export const ComplaintIntakeScreen: React.FC<ComplaintIntakeScreenProps> = ({ na
       return;
     }
 
+    if (!patientName.trim() || !patientPhone.trim()) {
+      alert(
+        language === 'ar'
+          ? 'يرجى إدخال اسمك ورقم الهاتف حتى يتمكن د. كريم من التعرف على حالتك والرد عليك'
+          : 'Please enter your name and phone number'
+      );
+      return;
+    }
+
     setIsSubmitting(true);
     try {
-      // Upload media to Supabase Storage if present
+      // 1. Save quick patient profile
+      await savePatientQuickProfile(patientName, patientPhone);
+
+      // 2. Upload media to Supabase Storage if present
       let uploadedAudioUrl: string | undefined = audioUri;
       if (audioUri) {
         uploadedAudioUrl = await uploadDentalAudio(audioUri, currentUser.id);
@@ -156,10 +170,10 @@ export const ComplaintIntakeScreen: React.FC<ComplaintIntakeScreenProps> = ({ na
         uploadedXrayUrls.push(uUrl);
       }
 
-      const newComplaint = await addComplaint({
-        patientId: currentUser.id,
-        patientName: currentUser.fullName,
-        patientPhone: currentUser.phone,
+      const { consultationId } = await createConsultationWithChat({
+        patientId: currentUser.id || `pat_${Date.now()}`,
+        patientName: patientName.trim(),
+        patientPhone: patientPhone.trim(),
         selectedTeeth,
         symptoms: selectedSymptoms,
         painLevel,
@@ -174,12 +188,19 @@ export const ComplaintIntakeScreen: React.FC<ComplaintIntakeScreenProps> = ({ na
       setIsSubmitting(false);
 
       Alert.alert(
-        language === 'ar' ? 'تم الإرسال بنجاح' : 'Submitted Successfully',
-        t.complaintSubmittedSuccess,
+        language === 'ar' ? 'تم إرسال الشكوى بنجاح' : 'Submitted Successfully',
+        language === 'ar'
+          ? 'تم استلام شكواك وسيقوم د. كريم بالرد عليك ومتابعة حالتك مباشرة.'
+          : 'Your case has been received by Dr. Karim.',
         [
           {
-            text: language === 'ar' ? 'متابعة الحالة' : 'Track Case',
+            text: language === 'ar' ? 'فتح المحادثة المباشرة 💬' : 'Open Live Chat 💬',
+            onPress: () => navigation.navigate('Chat', { consultationId }),
+          },
+          {
+            text: language === 'ar' ? 'متابعة الحالة بالسجل' : 'Track Case',
             onPress: () => navigation.navigate('MedicalRecords'),
+            style: 'cancel',
           },
         ]
       );
@@ -467,6 +488,37 @@ export const ComplaintIntakeScreen: React.FC<ComplaintIntakeScreenProps> = ({ na
         </View>
       </View>
 
+      {/* Step 7: Quick Patient Contact Info */}
+      <View style={styles.stepCard}>
+        <View style={styles.stepHeader}>
+          <Text style={styles.stepTitle}>
+            {language === 'ar' ? '7. بيانات التواصل للرد عليك' : '7. Your Contact Information'}
+          </Text>
+        </View>
+        <Text style={styles.stepSubtitle}>
+          {language === 'ar'
+            ? 'أدخل اسمك ورقم هاتفك حتى يتمكن د. كريم من مراجعة حالتك والرد عليك.'
+            : 'Enter your name and phone number for Dr. Karim to contact and advise you.'}
+        </Text>
+
+        <TextInput
+          style={styles.textInput}
+          placeholder={language === 'ar' ? 'الاسم بالكامل (مثال: محمد أحمد)' : 'Your full name'}
+          value={patientName}
+          onChangeText={setPatientName}
+          textAlign={isRTL ? 'right' : 'left'}
+        />
+
+        <TextInput
+          style={[styles.textInput, { marginTop: 10, writingDirection: 'ltr' }]}
+          placeholder={language === 'ar' ? 'رقم الهاتف / الواتساب (+20 100 000 0000)' : '+20 100 000 0000'}
+          value={patientPhone}
+          onChangeText={setPatientPhone}
+          keyboardType="phone-pad"
+          textAlign={isRTL ? 'right' : 'left'}
+        />
+      </View>
+
       {/* Submit Button */}
       <TouchableOpacity
         style={[styles.submitButton, isSubmitting && styles.submitButtonDisabled]}
@@ -475,7 +527,7 @@ export const ComplaintIntakeScreen: React.FC<ComplaintIntakeScreenProps> = ({ na
       >
         <Zap size={20} color={Colors.white} />
         <Text style={styles.submitButtonText}>
-          {isSubmitting ? t.submittingComplaint : t.submitComplaint}
+          {isSubmitting ? t.submittingComplaint : (language === 'ar' ? 'إرسال الشكوى واستلام التشخيص المبدئي' : t.submitComplaint)}
         </Text>
       </TouchableOpacity>
 
@@ -750,5 +802,15 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '800',
     color: Colors.white,
+  },
+  textInput: {
+    backgroundColor: '#f8fafc',
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 13,
+    color: Colors.textPrimary,
   },
 });

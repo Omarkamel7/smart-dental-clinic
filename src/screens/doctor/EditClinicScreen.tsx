@@ -9,6 +9,7 @@ import {
   Image,
   Alert,
   ActivityIndicator,
+  Switch,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import {
@@ -33,6 +34,9 @@ export const EditClinicScreen: React.FC<{ navigation: any }> = ({ navigation }) 
   const { language, isRTL, clinicSettings, updateClinicSettings } = useApp();
 
   const [loading, setLoading] = useState(false);
+  const [showClinicInfo, setShowClinicInfo] = useState(clinicSettings.showClinicInfo !== false);
+  const [promoBadgeEnabled, setPromoBadgeEnabled] = useState(clinicSettings.promoBadgeEnabled !== false);
+  const [promoBadgeText, setPromoBadgeText] = useState(clinicSettings.promoBadgeText || '✨ مجاناً لفترة محدودة');
   const [doctorName, setDoctorName] = useState(clinicSettings.doctorName);
   const [doctorTitle, setDoctorTitle] = useState(clinicSettings.doctorTitle);
   const [doctorBio, setDoctorBio] = useState(clinicSettings.doctorBio);
@@ -104,6 +108,9 @@ export const EditClinicScreen: React.FC<{ navigation: any }> = ({ navigation }) 
         locationAddress: locationAddress.trim(),
         locationMapsUrl: locationMapsUrl.trim(),
         workingHours: workingHours.trim(),
+        showClinicInfo,
+        promoBadgeEnabled,
+        promoBadgeText: promoBadgeText.trim(),
         avatarUrl: finalAvatarUrl,
         coverImageUrl: finalCoverUrl,
       });
@@ -211,6 +218,63 @@ export const EditClinicScreen: React.FC<{ navigation: any }> = ({ navigation }) 
           multiline
           textAlign={isRTL ? 'right' : 'left'}
         />
+      </View>
+
+      {/* Clinic Visibility Control Switch */}
+      <View style={[styles.card, { backgroundColor: '#f0fdf4', borderColor: '#86efac', borderWidth: 1.5 }]}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+          <View style={{ flex: 1, marginEnd: 12 }}>
+            <Text style={{ fontSize: 13, fontWeight: '800', color: '#166534', marginBottom: 2 }}>
+              {language === 'ar' ? '🏥 إظهار كارت بيانات العيادة للمرضى' : '🏥 Show Clinic Info Card to Patients'}
+            </Text>
+            <Text style={{ fontSize: 11, color: '#475569' }}>
+              {language === 'ar'
+                ? 'التحكم في ظهور كارت (العنوان، الهاتف، المواعيد) في شاشة حسابي لدى المريض.'
+                : 'Toggle visibility of address, phone, and hours on patient profile.'}
+            </Text>
+          </View>
+          <Switch
+            value={showClinicInfo}
+            onValueChange={setShowClinicInfo}
+            trackColor={{ false: '#cbd5e1', true: '#22c55e' }}
+          />
+        </View>
+      </View>
+
+      {/* Promotional "Free for a Limited Time" Badge Controller */}
+      <View style={[styles.card, { backgroundColor: '#fffbeb', borderColor: '#fde68a', borderWidth: 1.5 }]}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: promoBadgeEnabled ? 10 : 0 }}>
+          <View style={{ flex: 1, marginEnd: 12 }}>
+            <Text style={{ fontSize: 13, fontWeight: '800', color: '#92400e', marginBottom: 2 }}>
+              {language === 'ar' ? '🎁 شارة العرض المجاني الترويجي' : '🎁 Free Promo Ribbon Badge'}
+            </Text>
+            <Text style={{ fontSize: 11, color: '#78350f' }}>
+              {language === 'ar'
+                ? 'إظهار شريط لامع على كارت طلب الاستشارة (مجاناً لفترة محدودة).'
+                : 'Display a shining promo badge on the consultation card.'}
+            </Text>
+          </View>
+          <Switch
+            value={promoBadgeEnabled}
+            onValueChange={setPromoBadgeEnabled}
+            trackColor={{ false: '#cbd5e1', true: '#f59e0b' }}
+          />
+        </View>
+
+        {promoBadgeEnabled && (
+          <View style={{ marginTop: 6, paddingTop: 10, borderTopWidth: 1, borderTopColor: '#fef3c7' }}>
+            <Text style={[styles.fieldLabel, { color: '#92400e', marginTop: 0 }]}>
+              {language === 'ar' ? 'النص الظاهر على شارة العرض:' : 'Badge Text:'}
+            </Text>
+            <TextInput
+              style={[styles.input, { backgroundColor: '#ffffff', borderColor: '#fcd34d' }]}
+              value={promoBadgeText}
+              onChangeText={setPromoBadgeText}
+              placeholder="✨ مجاناً لفترة محدودة"
+              textAlign={isRTL ? 'right' : 'left'}
+            />
+          </View>
+        )}
       </View>
 
       {/* Clinic Contact & Working Hours */}

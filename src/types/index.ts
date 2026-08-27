@@ -141,6 +141,9 @@ export interface ClinicSettings {
   locationAddress: string;
   locationMapsUrl: string;
   workingHours: string;
+  showClinicInfo?: boolean;
+  promoBadgeEnabled?: boolean;
+  promoBadgeText?: string;
 }
 
 export interface ClinicInfo {

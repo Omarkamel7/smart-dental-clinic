@@ -71,7 +71,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      {/* Top Header & Role/Language Switcher Bar */}
+      {/* Top Language Switcher Bar */}
       <View style={styles.topBar}>
         <TouchableOpacity
           style={styles.langButton}
@@ -79,17 +79,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         >
           <Globe size={14} color={Colors.primaryDark} />
           <Text style={styles.langButtonText}>
-            {language === 'ar' ? 'English' : 'عربي'}
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.roleButton}
-          onPress={() => setRole(role === 'patient' ? 'doctor' : 'patient')}
-        >
-          <UserCheck size={14} color={Colors.secondary} />
-          <Text style={styles.roleButtonText}>
-            {role === 'patient' ? t.switchToDoctor : t.switchToPatient}
+            {language === 'ar' ? '🌐 English' : '🌐 العربية'}
           </Text>
         </TouchableOpacity>
       </View>
@@ -157,10 +147,58 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
       <View style={styles.actionsSection}>
         {/* 1. Request Preliminary Diagnosis (Triage) */}
         <TouchableOpacity
-          style={styles.primaryActionCard}
+          style={[
+            styles.primaryActionCard,
+            clinicSettings?.promoBadgeEnabled !== false && {
+              borderColor: '#0284c7',
+              borderWidth: 2,
+              backgroundColor: '#f0f9ff',
+              shadowColor: '#0284c7',
+              shadowOpacity: 0.15,
+              shadowRadius: 10,
+            },
+          ]}
           onPress={() => navigation.navigate('NewConsultation')}
           activeOpacity={0.85}
         >
+          {/* Floating Ribbon Badge (Concept 1) */}
+          {clinicSettings?.promoBadgeEnabled !== false && (
+            <View
+              style={{
+                position: 'absolute',
+                top: -11,
+                [isRTL ? 'left' : 'right']: 16,
+                backgroundColor: '#f59e0b',
+                paddingHorizontal: 12,
+                paddingVertical: 3,
+                borderRadius: 14,
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 4,
+                shadowColor: '#b45309',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.4,
+                shadowRadius: 4,
+                elevation: 4,
+                zIndex: 10,
+              }}
+            >
+              <Sparkles size={11} color={Colors.white} />
+              <Text
+                style={{
+                  color: Colors.white,
+                  fontSize: 11,
+                  fontWeight: '900',
+                  letterSpacing: 0.2,
+                }}
+              >
+                {(!clinicSettings?.promoBadgeText || clinicSettings.promoBadgeText === '✨ مجاناً لفترة محدودة' || clinicSettings.promoBadgeText === '✨ Free for a limited time')
+                  ? t.promoBadgeDefault
+                  : clinicSettings.promoBadgeText}
+              </Text>
+            </View>
+          )}
+
           <View style={styles.actionIconBubble}>
             <Stethoscope size={28} color={Colors.white} />
           </View>
@@ -179,10 +217,58 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
 
         {/* 2. Direct Medical Chat */}
         <TouchableOpacity
-          style={styles.chatActionCard}
+          style={[
+            styles.chatActionCard,
+            clinicSettings?.promoBadgeEnabled !== false && {
+              borderColor: '#0284c7',
+              borderWidth: 2,
+              backgroundColor: '#f0f9ff',
+              shadowColor: '#0284c7',
+              shadowOpacity: 0.15,
+              shadowRadius: 10,
+            },
+          ]}
           onPress={() => navigation.navigate('Chat')}
           activeOpacity={0.85}
         >
+          {/* Floating Ribbon Badge for Chat (Concept 1) */}
+          {clinicSettings?.promoBadgeEnabled !== false && (
+            <View
+              style={{
+                position: 'absolute',
+                top: -11,
+                [isRTL ? 'left' : 'right']: 16,
+                backgroundColor: '#10b981',
+                paddingHorizontal: 12,
+                paddingVertical: 3,
+                borderRadius: 14,
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 4,
+                shadowColor: '#047857',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.4,
+                shadowRadius: 4,
+                elevation: 4,
+                zIndex: 10,
+              }}
+            >
+              <Sparkles size={11} color={Colors.white} />
+              <Text
+                style={{
+                  color: Colors.white,
+                  fontSize: 11,
+                  fontWeight: '900',
+                  letterSpacing: 0.2,
+                }}
+              >
+                {(!clinicSettings?.promoBadgeText || clinicSettings.promoBadgeText === '✨ مجاناً لفترة محدودة' || clinicSettings.promoBadgeText === '✨ Free for a limited time')
+                  ? t.promoBadgeDefault
+                  : clinicSettings.promoBadgeText}
+              </Text>
+            </View>
+          )}
+
           <View style={styles.chatIconBubble}>
             <MessageSquare size={24} color={Colors.white} />
           </View>
@@ -205,14 +291,14 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
           </View>
         </TouchableOpacity>
 
-        {/* Quick Contact & Booking Row */}
+        {/* Quick Contact Row */}
         <View style={styles.quickRow}>
           <TouchableOpacity
             style={styles.quickBtn}
-            onPress={() => navigation.navigate('Appointments')}
+            onPress={() => navigation.navigate('Chat')}
           >
-            <Calendar size={18} color={Colors.primary} />
-            <Text style={styles.quickBtnText}>{t.bookAppointment}</Text>
+            <MessageSquare size={18} color={Colors.primary} />
+            <Text style={styles.quickBtnText}>{language === 'ar' ? 'محادثة الطبيب' : 'Chat'}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.quickBtn} onPress={handleCall}>
@@ -238,7 +324,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
             key={service.id}
             style={styles.serviceCard}
             onPress={() =>
-              navigation.navigate('Appointments', { selectedServiceId: service.id })
+              navigation.navigate('NewConsultation')
             }
           >
             <View style={styles.serviceIconContainer}>
