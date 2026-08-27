@@ -421,48 +421,37 @@
   </div>
 
   <script>
-    // State Store
+    const SYMPTOM_MAP = {
+      'sharp_pain': 'ألم حاد ومفاجئ',
+      'sensitivity': 'حساسية مع البارد والساخن',
+      'gum_bleeding': 'نزيف أو التهاب اللثة',
+      'broken_tooth': 'كسر بالسن أو الحشوة',
+      'swelling': 'انتفاخ وتورم',
+      'chewing_pain': 'ألم عند المضغ',
+    };
+
+    const SECTOR_MAP = {
+      'upper_right': 'فك علوي (يمين)',
+      'upper_front': 'فك علوي (أمامي)',
+      'upper_left': 'فك علوي (يسار)',
+      'lower_right': 'فك سفلي (يمين)',
+      'lower_front': 'فك سفلي (أمامي)',
+      'lower_left': 'فك سفلي (يسار)',
+    };
+
+    // State Store - Clean Real State
     const state = {
       role: 'patient', // 'patient' or 'doctor'
       currentTab: 'home',
-      patientName: 'محمد أحمد',
-      patientPhone: '+20 100 123 4567',
+      patientName: '',
+      patientPhone: '',
       selectedSymptoms: ['sharp_pain'],
       selectedSector: 'upper_right',
       painScore: 7,
       complaintDesc: '',
-      attachedPhotos: ['assets/doctor_clinic.jpg'],
-      consultations: [
-        {
-          id: 'c1',
-          patientName: 'أحمد محمود',
-          patientPhone: '01012345678',
-          symptoms: ['ألم حاد ومفاجئ', 'حساسية مع البارد'],
-          pain: 8,
-          teeth: 'السن #16',
-          desc: 'ألم مستمر في الضرس العلوي الأيمن مع شرب الماء البارد منذ يومين.',
-          urgency: 'urgent',
-          status: 'pending',
-          time: 'منذ 10 دقائق',
-          lastMsg: 'ألم مستمر في الضرس العلوي الأيمن...'
-        }
-      ],
-      messages: [
-        {
-          id: 'm1',
-          senderRole: 'patient',
-          senderName: 'محمد أحمد',
-          text: '🚨 طلب استشارة جديدة:\n• الأعراض: ألم حاد ومفاجئ\n• شدة الألم: 7/10\n• الموضع: فك علوي يمين',
-          time: '09:30 ص'
-        },
-        {
-          id: 'm2',
-          senderRole: 'doctor',
-          senderName: 'د. كريم أبو بكر',
-          text: 'أهلاً بك يا محمد، تم فحص الشكوى. أنصح بتجنب الضغط على الجانب الأيمن وتناول مسكن لحين عمل أشعة بالعيادة.',
-          time: '09:32 ص'
-        }
-      ]
+      attachedPhotos: [],
+      consultations: [],
+      messages: []
     };
 
     function switchTab(tab) {
@@ -513,14 +502,18 @@
         return;
       }
 
+      // Resolve Arabic symptom labels
+      const symptomsLabel = state.selectedSymptoms.map(s => SYMPTOM_MAP[s] || s).join('، ');
+      const sectorLabel = SECTOR_MAP[state.selectedSector] || state.selectedSector;
+
       // Add to consultations & messages
       const newCons = {
         id: 'c_' + Date.now(),
         patientName: state.patientName,
         patientPhone: state.patientPhone,
-        symptoms: state.selectedSymptoms,
+        symptoms: state.selectedSymptoms.map(s => SYMPTOM_MAP[s] || s),
         pain: state.painScore,
-        teeth: state.selectedSector,
+        teeth: sectorLabel,
         desc: state.complaintDesc || 'استشارة وفحص مبدئي',
         urgency: state.painScore >= 8 ? 'urgent' : 'moderate',
         status: 'pending',
@@ -533,7 +526,7 @@
         id: 'm_' + Date.now(),
         senderRole: 'patient',
         senderName: state.patientName,
-        text: `🚨 استشارة جديدة:\n• الأعراض: ${state.selectedSymptoms.join(', ')}\n• شدة الألم: ${state.painScore}/10\n• الوصف: ${state.complaintDesc || 'لا يوجد'}`,
+        text: `🚨 طلب استشارة جديد:\n• الأعراض: ${symptomsLabel}\n• موضع السن: ${sectorLabel}\n• شدة الألم: ${state.painScore}/10\n• وصف الشكوى: ${state.complaintDesc || 'لا يوجد'}`,
         time: 'الآن'
       });
 
