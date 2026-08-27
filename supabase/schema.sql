@@ -1,5 +1,5 @@
 -- ==============================================================================
--- SMART DENTAL CLINIC - SUPABASE BACKEND SCHEMA & MIGRATION SCRIPT
+-- SMART DENTAL CLINIC - COMPLETE BACKEND SCHEMA & MIGRATION SCRIPT
 -- ==============================================================================
 
 -- 1. Enable Extensions
@@ -66,17 +66,126 @@ CREATE TABLE IF NOT EXISTS public.messages (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- 6. Clinic Settings Table (Dynamic Doctor & Clinic Info)
+CREATE TABLE IF NOT EXISTS public.clinic_settings (
+  id TEXT PRIMARY KEY DEFAULT 'main',
+  doctor_name TEXT NOT NULL DEFAULT 'د. كريم أبو بكر',
+  doctor_title TEXT NOT NULL DEFAULT 'استشاري طب وجراحة وتجميل وزراعة الأسنان',
+  doctor_bio TEXT NOT NULL DEFAULT 'تقديم أحدث الحلول العلاجية والتجميلية وزراعة وتجميل الأسنان بأعلى معايير التعقيم العالمية وأحدث التقنيات الرقمية المتقدمة.',
+  avatar_url TEXT DEFAULT '',
+  cover_image_url TEXT DEFAULT '',
+  years_experience INTEGER DEFAULT 12,
+  patients_count INTEGER DEFAULT 3500,
+  rating NUMERIC(3,1) DEFAULT 4.9,
+  phone_number TEXT NOT NULL DEFAULT '+20 100 000 0000',
+  whatsapp_number TEXT NOT NULL DEFAULT '+20 100 000 0000',
+  location_address TEXT NOT NULL DEFAULT 'مصر الجديدة - القاهرة',
+  location_maps_url TEXT DEFAULT 'https://maps.google.com',
+  working_hours TEXT NOT NULL DEFAULT 'السبت - الخميس: 12:00 م - 10:00 م',
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 7. Services Table (Dynamic Services & Prices)
+CREATE TABLE IF NOT EXISTS public.services (
+  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+  name_ar TEXT NOT NULL,
+  name_en TEXT NOT NULL,
+  description_ar TEXT NOT NULL,
+  description_en TEXT NOT NULL,
+  price INTEGER NOT NULL DEFAULT 0,
+  duration_minutes INTEGER NOT NULL DEFAULT 30,
+  icon_name TEXT DEFAULT 'Sparkles',
+  category TEXT DEFAULT 'restoration',
+  is_active BOOLEAN DEFAULT true,
+  sort_order INTEGER DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 8. Portfolio Cases Table (Before & After Transformations)
+CREATE TABLE IF NOT EXISTS public.portfolio_cases (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  title_ar TEXT NOT NULL,
+  title_en TEXT NOT NULL,
+  category_ar TEXT NOT NULL DEFAULT 'تجميل الأسنان',
+  category_en TEXT NOT NULL DEFAULT 'Cosmetics',
+  description_ar TEXT NOT NULL,
+  description_en TEXT NOT NULL,
+  before_image_url TEXT NOT NULL,
+  after_image_url TEXT NOT NULL,
+  duration_weeks INTEGER DEFAULT 2,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- ==============================================================================
--- 6. Indexes for High Performance
+-- 9. Initial Seed Data
+-- ==============================================================================
+
+-- Seed Clinic Settings
+INSERT INTO public.clinic_settings (
+  id, doctor_name, doctor_title, doctor_bio,
+  phone_number, whatsapp_number, location_address, working_hours
+) VALUES (
+  'main',
+  'د. كريم أبو بكر',
+  'استشاري طب وجراحة وتجميل وزراعة الأسنان',
+  'تقديم أحدث الحلول العلاجية والتجميلية وزراعة وتجميل الأسنان بأعلى معايير التعقيم العالمية وأحدث التقنيات الرقمية المتقدمة.',
+  '+20 100 000 0000',
+  '+20 100 000 0000',
+  'مصر الجديدة - القاهرة',
+  'السبت - الخميس: 12:00 م - 10:00 م'
+) ON CONFLICT (id) DO NOTHING;
+
+-- Seed Default Services
+INSERT INTO public.services (id, name_ar, name_en, description_ar, description_en, price, duration_minutes, icon_name, category, sort_order)
+VALUES
+  ('srv_checkup', 'كشف واستشارة تخصصية', 'Specialist Consultation', 'فحص شامل للأسنان واللثة مع خطة علاجية رقمية متكاملة', 'Comprehensive oral exam and treatment plan', 300, 30, 'Search', 'checkup', 1),
+  ('srv_scaling', 'تنظيف وإزالة الجير وتلميع الأسنان', 'Dental Cleaning & Polishing', 'إزالة الترسبات الجيرية بالموجات الصوتية وتلميع الأسنان', 'Ultrasonic tartar removal and airflow polishing', 500, 45, 'Sparkles', 'restoration', 2),
+  ('srv_whitening', 'جلسة تبييض الأسنان بالليزر', 'Laser Teeth Whitening', 'تبييض احترافي بالليزر خلال 45 دقيقة بنتائج فورية مذهلة', 'Professional in-office laser whitening session', 1800, 60, 'Sun', 'cosmetics', 3),
+  ('srv_veneers', 'ابتسامة هوليوود وعدسات الفينير', 'Hollywood Smile & Veneers', 'عدسات تجميلية فائقة الدقة E-max لابتسامة طبيعية متناسقة', 'Custom ultra-thin E-max porcelain veneers', 3500, 60, 'Smile', 'cosmetics', 4),
+  ('srv_implant', 'زراعة الأسنان الفورية الألمانية', 'German Dental Implant', 'زراعة تيتانيوم ألمانية مع التاج بتقنية ثلاثية الأبعاد بدون ألم', 'Titanium implant placement with 3D guided precision', 8500, 60, 'ShieldCheck', 'surgery', 5),
+  ('srv_root_canal', 'علاج وجذور وأعصاب الضرس (جلسة واحدة)', 'Endodontic Root Canal Therapy', 'تنظيف وحشو الجذور بأحدث أجهزة الروتاري الإلكترونية', 'Single-visit rotary root canal treatment', 1200, 45, 'Activity', 'endodontics', 6)
+ON CONFLICT (id) DO NOTHING;
+
+-- Seed Default Portfolio Cases
+INSERT INTO public.portfolio_cases (title_ar, title_en, category_ar, category_en, description_ar, description_en, before_image_url, after_image_url, duration_weeks)
+VALUES
+  (
+    'تصميم ابتسامة هوليوود بالفينير السويسري (10 أسنان)',
+    'Hollywood Smile Porcelain Veneers (10 Teeth)',
+    'تجميل الأسنان',
+    'Cosmetic Dentistry',
+    'علاج تصبغات الأسنان وعدم تناسق الحجم بتركيب عدسات E-Max طبيعية المظهر.',
+    'Restoration of tooth discoloration and misalignment using custom E-Max veneers.',
+    'https://images.unsplash.com/photo-1606811841689-23dfddce3e95?w=600&q=80',
+    'https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?w=600&q=80',
+    3
+  ),
+  (
+    'زراعة ضرس علوي بالتقنية الرقمية الموجهة',
+    'Guided Digital Dental Implant for Molar',
+    'زراعة الأسنان',
+    'Dental Implant',
+    'زراعة سن فوري بعد الفقد مع تاج زركونيا عالي الصلابة وبدون جراحة تقليدية.',
+    'Flapless 3D guided implant placement with monolithic zirconia crown.',
+    'https://images.unsplash.com/photo-1598256989800-fe5f95da9787?w=600&q=80',
+    'https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=600&q=80',
+    8
+  )
+ON CONFLICT (id) DO NOTHING;
+
+-- ==============================================================================
+-- 10. Indexes for High Performance
 -- ==============================================================================
 CREATE INDEX IF NOT EXISTS idx_consultations_patient_id ON public.consultations(patient_id);
 CREATE INDEX IF NOT EXISTS idx_consultations_status ON public.consultations(status);
 CREATE INDEX IF NOT EXISTS idx_appointments_patient_id ON public.appointments(patient_id);
 CREATE INDEX IF NOT EXISTS idx_messages_consultation_id ON public.messages(consultation_id);
-CREATE INDEX IF NOT EXISTS idx_messages_created_at ON public.messages(created_at);
+CREATE INDEX IF NOT EXISTS idx_services_is_active ON public.services(is_active);
+CREATE INDEX IF NOT EXISTS idx_portfolio_cases_created ON public.portfolio_cases(created_at);
 
 -- ==============================================================================
--- 7. Automated Trigger for New User Profile Creation
+-- 11. Automated Trigger for New User Profile Creation
 -- ==============================================================================
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
@@ -86,7 +195,7 @@ BEGIN
     NEW.id,
     COALESCE(NEW.raw_user_meta_data->>'full_name', 'مستخدم جديد'),
     COALESCE(NEW.raw_user_meta_data->>'phone', ''),
-    COALESCE(NEW.raw_user_meta_data->>'role', 'patient')
+    'patient'
   )
   ON CONFLICT (id) DO NOTHING;
   RETURN NEW;
@@ -99,14 +208,8 @@ CREATE TRIGGER on_auth_user_created
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
 -- ==============================================================================
--- 8. Row Level Security (RLS) Policies
+-- 12. Helper function to check if current user is doctor
 -- ==============================================================================
-ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.consultations ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.appointments ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.messages ENABLE ROW LEVEL SECURITY;
-
--- Helper function to check if current user is a doctor
 CREATE OR REPLACE FUNCTION public.is_doctor()
 RETURNS BOOLEAN AS $$
 BEGIN
@@ -117,10 +220,21 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
+-- ==============================================================================
+-- 13. Row Level Security (RLS) Policies
+-- ==============================================================================
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.consultations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.appointments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.messages ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.clinic_settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.services ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.portfolio_cases ENABLE ROW LEVEL SECURITY;
+
 -- Profiles Policies
 CREATE POLICY "Public profiles are viewable by authenticated users"
   ON public.profiles FOR SELECT
-  TO authenticated
+  TO authenticated, anon
   USING (true);
 
 CREATE POLICY "Users can update their own profile"
@@ -178,8 +292,66 @@ CREATE POLICY "Authenticated users can insert messages"
   TO authenticated
   WITH CHECK (auth.uid() = sender_id);
 
+-- Clinic Settings Policies (Public Read, Doctor Write)
+CREATE POLICY "Everyone can view clinic settings"
+  ON public.clinic_settings FOR SELECT
+  TO authenticated, anon
+  USING (true);
+
+CREATE POLICY "Doctors can update clinic settings"
+  ON public.clinic_settings FOR UPDATE
+  TO authenticated
+  USING (public.is_doctor());
+
+CREATE POLICY "Doctors can insert clinic settings"
+  ON public.clinic_settings FOR INSERT
+  TO authenticated
+  WITH CHECK (public.is_doctor());
+
+-- Services Policies (Public Read, Doctor Manage)
+CREATE POLICY "Everyone can view active services"
+  ON public.services FOR SELECT
+  TO authenticated, anon
+  USING (is_active = true OR public.is_doctor());
+
+CREATE POLICY "Doctors can insert services"
+  ON public.services FOR INSERT
+  TO authenticated
+  WITH CHECK (public.is_doctor());
+
+CREATE POLICY "Doctors can update services"
+  ON public.services FOR UPDATE
+  TO authenticated
+  USING (public.is_doctor());
+
+CREATE POLICY "Doctors can delete services"
+  ON public.services FOR DELETE
+  TO authenticated
+  USING (public.is_doctor());
+
+-- Portfolio Cases Policies (Public Read, Doctor Manage)
+CREATE POLICY "Everyone can view portfolio cases"
+  ON public.portfolio_cases FOR SELECT
+  TO authenticated, anon
+  USING (true);
+
+CREATE POLICY "Doctors can insert portfolio cases"
+  ON public.portfolio_cases FOR INSERT
+  TO authenticated
+  WITH CHECK (public.is_doctor());
+
+CREATE POLICY "Doctors can update portfolio cases"
+  ON public.portfolio_cases FOR UPDATE
+  TO authenticated
+  USING (public.is_doctor());
+
+CREATE POLICY "Doctors can delete portfolio cases"
+  ON public.portfolio_cases FOR DELETE
+  TO authenticated
+  USING (public.is_doctor());
+
 -- ==============================================================================
--- 9. Storage Bucket Policies (dental-media)
+-- 14. Storage Bucket Policies (dental-media)
 -- ==============================================================================
 INSERT INTO storage.buckets (id, name, public)
 VALUES ('dental-media', 'dental-media', true)
@@ -196,7 +368,23 @@ CREATE POLICY "Authenticated Users can upload media"
   WITH CHECK (bucket_id = 'dental-media');
 
 -- ==============================================================================
--- 10. Enable Realtime Replication
+-- 15. Enable Realtime Replication
 -- ==============================================================================
 ALTER PUBLICATION supabase_realtime ADD TABLE public.messages;
 ALTER PUBLICATION supabase_realtime ADD TABLE public.consultations;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.clinic_settings;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.services;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.portfolio_cases;
+
+-- ==============================================================================
+-- 16. Promote Official Doctor Account (Dr. Karim Abo Bakr)
+-- ==============================================================================
+-- Run this in Supabase SQL Editor after registering karim@smartdental.com:
+UPDATE public.profiles
+SET 
+  role = 'doctor',
+  full_name = 'د. كريم أبو بكر',
+  phone = '+20 100 123 4567'
+WHERE id = (
+  SELECT id FROM auth.users WHERE email = 'karim@smartdental.com'
+);

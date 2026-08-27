@@ -13,7 +13,7 @@ const SUPABASE_PROJECT_ANON_KEY =
 
 export const isSupabaseConfigured = true;
 
-export const supabase = createClient<Database>(
+export const supabase = createClient<any>(
   SUPABASE_PROJECT_URL,
   SUPABASE_PROJECT_ANON_KEY,
   {

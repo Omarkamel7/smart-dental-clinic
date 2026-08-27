@@ -181,6 +181,147 @@ export interface Database {
           created_at?: string;
         };
       };
+      clinic_settings: {
+        Row: {
+          id: string;
+          doctor_name: string;
+          doctor_title: string;
+          doctor_bio: string;
+          avatar_url: string;
+          cover_image_url: string;
+          years_experience: number;
+          patients_count: number;
+          rating: number;
+          phone_number: string;
+          whatsapp_number: string;
+          location_address: string;
+          location_maps_url: string;
+          working_hours: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          doctor_name?: string;
+          doctor_title?: string;
+          doctor_bio?: string;
+          avatar_url?: string;
+          cover_image_url?: string;
+          years_experience?: number;
+          patients_count?: number;
+          rating?: number;
+          phone_number?: string;
+          whatsapp_number?: string;
+          location_address?: string;
+          location_maps_url?: string;
+          working_hours?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          doctor_name?: string;
+          doctor_title?: string;
+          doctor_bio?: string;
+          avatar_url?: string;
+          cover_image_url?: string;
+          years_experience?: number;
+          patients_count?: number;
+          rating?: number;
+          phone_number?: string;
+          whatsapp_number?: string;
+          location_address?: string;
+          location_maps_url?: string;
+          working_hours?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      services: {
+        Row: {
+          id: string;
+          name_ar: string;
+          name_en: string;
+          description_ar: string;
+          description_en: string;
+          price: number;
+          duration_minutes: number;
+          icon_name: string;
+          category: string;
+          is_active: boolean;
+          sort_order: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          name_ar: string;
+          name_en: string;
+          description_ar: string;
+          description_en: string;
+          price?: number;
+          duration_minutes?: number;
+          icon_name?: string;
+          category?: string;
+          is_active?: boolean;
+          sort_order?: number;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          name_ar?: string;
+          name_en?: string;
+          description_ar?: string;
+          description_en?: string;
+          price?: number;
+          duration_minutes?: number;
+          icon_name?: string;
+          category?: string;
+          is_active?: boolean;
+          sort_order?: number;
+          created_at?: string;
+        };
+      };
+      portfolio_cases: {
+        Row: {
+          id: string;
+          title_ar: string;
+          title_en: string;
+          category_ar: string;
+          category_en: string;
+          description_ar: string;
+          description_en: string;
+          before_image_url: string;
+          after_image_url: string;
+          duration_weeks: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          title_ar: string;
+          title_en: string;
+          category_ar?: string;
+          category_en?: string;
+          description_ar: string;
+          description_en: string;
+          before_image_url: string;
+          after_image_url: string;
+          duration_weeks?: number;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          title_ar?: string;
+          title_en?: string;
+          category_ar?: string;
+          category_en?: string;
+          description_ar?: string;
+          description_en?: string;
+          before_image_url?: string;
+          after_image_url?: string;
+          duration_weeks?: number;
+          created_at?: string;
+        };
+      };
     };
   };
 }

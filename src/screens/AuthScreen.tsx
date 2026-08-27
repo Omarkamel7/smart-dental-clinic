@@ -33,7 +33,7 @@ interface AuthScreenProps {
 }
 
 export const AuthScreen: React.FC<AuthScreenProps> = ({ navigation }) => {
-  const { language, setLanguage, setRole, updateUserProfile, t, isRTL } = useApp();
+  const { language, setLanguage, setRole, updateUserProfile, currentUser, t, isRTL } = useApp();
 
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
   const [selectedRole, setSelectedRole] = useState<UserRole>('patient');
@@ -80,15 +80,17 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ navigation }) => {
           .single();
 
         if (profile) {
-          setRole(profile.role as UserRole);
+          const prof = profile as any;
+          setRole(prof.role as UserRole);
           updateUserProfile({
-            id: profile.id,
-            fullName: profile.full_name,
-            phone: profile.phone,
+            id: prof.id,
+            fullName: prof.full_name,
+            phone: prof.phone,
             medicalHistory: {
-              hasDiabetes: profile.has_diabetes,
-              hasHypertension: profile.has_hypertension,
-              hasPenicillinAllergy: profile.has_penicillin_allergy,
+              ...currentUser.medicalHistory,
+              hasDiabetes: prof.has_diabetes,
+              hasHypertension: prof.has_hypertension,
+              hasPenicillinAllergy: prof.has_penicillin_allergy,
             },
           });
         }
@@ -144,7 +146,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ navigation }) => {
 
       if (data.user) {
         // Insert into public.profiles as Patient
-        await supabase.from('profiles').upsert({
+        await (supabase.from('profiles') as any).upsert({
           id: data.user.id,
           full_name: fullName.trim(),
           phone: phone.trim(),

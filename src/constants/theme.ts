@@ -24,6 +24,7 @@ export const Colors = {
   textSecondary: '#64748b',
   textMuted: '#94a3b8',
   border: '#e2e8f0',
+  borderLight: '#f1f5f9',
   borderDark: '#cbd5e1',
   
   // Interactive Elements

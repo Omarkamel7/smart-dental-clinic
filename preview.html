@@ -738,56 +738,9 @@
       painLevel: 8,
       complaintText: '',
       chatInput: '',
-      messages: [
-        {
-          id: 'msg_01',
-          senderRole: 'doctor',
-          senderName: 'د. كريم أبو بكر',
-          text: 'أهلاً بك يا أستاذ أحمد. اطلعت على صورة السن ووصف الألم، الحالة تشير لالتهاب عصب بالضرس 16. وضعت لك تعليمات التسكين وحجزنا موعد عاجل بالعيادة.',
-          time: '10:15 AM'
-        },
-        {
-          id: 'msg_02',
-          senderRole: 'patient',
-          senderName: 'أحمد محمود',
-          text: 'شكراً جداً يا دكتور، هل أقدر آخذ مسكن بروفين 400 قبل ميعاد الجلسة؟',
-          time: '10:20 AM'
-        },
-        {
-          id: 'msg_03',
-          senderRole: 'doctor',
-          senderName: 'د. كريم أبو بكر',
-          text: 'نعم بالتأكيد، مسكن بروفين 400 مناسب تماماً بعد الأكل حتى موعد الكشف بالعيادة.',
-          time: '10:22 AM'
-        }
-      ],
-      complaints: [
-        {
-          id: 'comp_01',
-          patientName: 'أحمد محمود سليمان',
-          patientPhone: '+20 111 234 5678',
-          teeth: [16],
-          symptoms: ['ألم نابض ومستمر', 'حساسية شديدة مع المشروبات الباردة'],
-          pain: 8,
-          desc: 'ألم حاد ومفاجئ في الضرس العلوي الأيمن، يزداد جداً مع الماء البارد ويصحيني من النوم.',
-          status: 'diagnosed',
-          urgency: 'urgent',
-          diagnosis: {
-            condition: 'التهاب عصب حاد في الضرس الأول العلوي الأيمن (Acute Pulpitis)',
-            firstAid: 'تجنب المشروبات الباردة والساخنة تماماً، والمضغ على الجانب الأيسر. يوصى بأخذ كيتولاك أو بروفين 400 بعد الأكل لتسكين الألم مؤقتاً.',
-            meds: 'بروفين 400 ملجم بعد الوجبات عند اللزوم'
-          }
-        }
-      ],
-      appointments: [
-        {
-          id: 'apt_01',
-          service: 'علاج وجذور وأعصاب (علاج عصب)',
-          date: '2026-08-28',
-          time: '06:00 - 06:45 PM',
-          status: 'مؤكد بالعيادة'
-        }
-      ]
+      messages: [],
+      complaints: [],
+      appointments: []
     };
 
     // Anatomical Tooth Database
@@ -1255,7 +1208,16 @@
         } else if (state.tab === 'records') {
           screen.innerHTML = `
             <div style="font-weight: 800; font-size: 14px;">${d.navRecords}</div>
-            ${state.complaints.map(c => `
+            ${state.complaints.length === 0 ? `
+              <div class="card" style="text-align: center; padding: 30px 16px; color: #64748b;">
+                <div style="font-size: 32px; margin-bottom: 8px;">📋</div>
+                <strong style="display: block; font-size: 13px; color: #0f172a; margin-bottom: 4px;">لم تقم بإرسال أي طلب استشارة بعد</strong>
+                <p style="font-size: 11px; margin-bottom: 14px;">يمكنك تحديد السن المصاب ووصف الأعراض ليصلك التشخيص المبدئي.</p>
+                <button onclick="navigate('triage')" class="btn-submit" style="margin: 0 auto; width: auto; padding: 10px 20px; font-size: 12px;">
+                  طلب استشارة جديدة
+                </button>
+              </div>
+            ` : state.complaints.map(c => `
               <div class="card">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
                   <span class="badge ${c.urgency === 'urgent' ? 'badge-urgent' : 'badge-pending'}">${c.urgency === 'urgent' ? 'عاجلة' : 'متوسطة'}</span>
@@ -1296,13 +1258,19 @@
             <div class="chat-header-bar">
               <div class="chat-partner-title">
                 ${state.role === 'patient' ? '<img src="assets/doctor_clinic.jpg" style="width: 32px; height: 32px; border-radius: 16px; object-fit: cover; border: 1px solid #0284c7; margin-left: 6px;">' : '<div class="online-indicator"></div>'}
-                <span>${state.role === 'doctor' ? 'أحمد محمود سليمان (المريض)' : 'د. كريم أبو بكر (استشاري الأسنان)'}</span>
+                <span>${state.role === 'doctor' ? 'المريض' : 'د. كريم أبو بكر (استشاري الأسنان)'}</span>
               </div>
               <span class="badge badge-done">متاح للرد</span>
             </div>
 
             <div style="flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:8px; padding-bottom:60px;">
-              ${state.messages.map(m => {
+              ${state.messages.length === 0 ? `
+                <div style="text-align: center; padding: 60px 20px; color: #64748b;">
+                  <div style="font-size: 36px; margin-bottom: 8px;">🩺</div>
+                  <strong style="display: block; font-size: 14px; color: #0f172a; margin-bottom: 4px;">ابدأ المحادثة مع الطبيب الآن</strong>
+                  <p style="font-size: 11px;">يمكنك إرسال استفساراتك، صور الأسنان أو الأشعة، والتسجيلات الصوتية مباشرة.</p>
+                </div>
+              ` : state.messages.map(m => {
                 const isMe = (state.role === 'doctor' && m.senderRole === 'doctor') || (state.role === 'patient' && m.senderRole === 'patient');
                 const isDoc = m.senderRole === 'doctor';
                 return `
@@ -1333,13 +1301,19 @@
             <div class="chat-header-bar">
               <div class="chat-partner-title">
                 <div class="online-indicator"></div>
-                <span>أحمد محمود سليمان (حالة السن #16)</span>
+                <span>محادثة المريض</span>
               </div>
-              <span class="badge badge-urgent">ألم حاد 8/10</span>
+              <span class="badge badge-done">متاح للرد</span>
             </div>
 
             <div style="flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:8px; padding-bottom:60px;">
-              ${state.messages.map(m => {
+              ${state.messages.length === 0 ? `
+                <div style="text-align: center; padding: 60px 20px; color: #64748b;">
+                  <div style="font-size: 36px; margin-bottom: 8px;">🩺</div>
+                  <strong style="display: block; font-size: 14px; color: #0f172a; margin-bottom: 4px;">لا توجد رسائل سابقة</strong>
+                  <p style="font-size: 11px;">ابدأ المحادثة الطبية مع المريض وأرسل التعليمات أو الوصفات.</p>
+                </div>
+              ` : state.messages.map(m => {
                 const isMe = m.senderRole === 'doctor';
                 return `
                   <div class="chat-bubble-row ${isMe ? 'me' : 'other'}">
@@ -1360,7 +1334,8 @@
               <button onclick="sendChatMessage()" class="chat-send-btn">➤</button>
             </div>
           `;
-          // Doctor Dashboard
+        } else {
+          // Doctor Dashboard with Management Actions
           screen.innerHTML = `
             <div class="card" style="background: #0369a1; color: white; border: none; display: flex; align-items: center; gap: 12px;">
               <img src="assets/doctor_clinic.jpg" style="width: 52px; height: 52px; border-radius: 26px; object-fit: cover; border: 2px solid white; box-shadow: 0 4px 6px rgba(0,0,0,0.2);">
@@ -1370,9 +1345,31 @@
               </div>
             </div>
 
-            <div style="font-weight: 800; font-size: 13px;">${d.incomingCases}</div>
+            <!-- Doctor Clinic Management Tools Grid -->
+            <div class="card" style="background: #f8fafc; border: 1.5px solid #cbd5e1; padding: 12px;">
+              <strong style="font-size: 12px; color: #0284c7; display: block; margin-bottom: 8px;">⚙️ أدوات إدارة العيادة والمحتوى (Live Supabase):</strong>
+              <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
+                <button onclick="alert('فتح شاشة تعديل بيانات العيادة وصور الطبيب')" style="padding: 8px 4px; font-size: 10px; font-weight: 800; background: white; border: 1px solid #0284c7; color: #0284c7; border-radius: 8px; cursor: pointer;">
+                  ✏️ بيانات العيادة
+                </button>
+                <button onclick="alert('فتح شاشة إدارة الخدمات والأسعار')" style="padding: 8px 4px; font-size: 10px; font-weight: 800; background: white; border: 1px solid #16a34a; color: #16a34a; border-radius: 8px; cursor: pointer;">
+                  💲 الخدمات والأسعار
+                </button>
+                <button onclick="alert('فتح شاشة رفع حالات قبل وبعد لمعرض الأعمال')" style="padding: 8px 4px; font-size: 10px; font-weight: 800; background: white; border: 1px solid #d97706; color: #d97706; border-radius: 8px; cursor: pointer;">
+                  🖼️ معرض الأعمال
+                </button>
+              </div>
+            </div>
 
-            ${state.complaints.map(c => `
+            <div style="font-weight: 800; font-size: 13px; margin-top: 10px;">${d.incomingCases}</div>
+
+            ${state.complaints.length === 0 ? `
+              <div class="card" style="text-align: center; padding: 24px 16px; color: #64748b;">
+                <div style="font-size: 32px; margin-bottom: 6px;">✅</div>
+                <strong style="display: block; font-size: 13px; color: #0f172a;">لا توجد شكاوى واردة حالياً</strong>
+                <p style="font-size: 11px; margin-top: 2px;">جميع الحالات تم الرد عليها وتشخيصها بنجاح.</p>
+              </div>
+            ` : state.complaints.map(c => `
               <div class="card" style="border-color: ${c.status === 'pending' ? '#f59e0b' : '#cbd5e1'};">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                   <div style="display: flex; align-items: center; gap: 4px; flex-wrap: wrap;">

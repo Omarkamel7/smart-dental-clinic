@@ -39,13 +39,15 @@ export const AppointmentsScreen: React.FC<AppointmentsScreenProps> = ({
     appointments,
     bookAppointment,
     cancelAppointment,
+    services,
   } = useApp();
 
+  const activeServices = services.length > 0 ? services : DEFAULT_SERVICES;
   const preselectedServiceId = route?.params?.selectedServiceId;
 
   const [selectedService, setSelectedService] = useState<DentalService>(
-    DEFAULT_SERVICES.find((s) => s.id === preselectedServiceId) ||
-      DEFAULT_SERVICES[0]
+    activeServices.find((s) => s.id === preselectedServiceId) ||
+      activeServices[0]
   );
 
   // Dates generator (Next 7 available days excluding Friday)
@@ -58,26 +60,23 @@ export const AppointmentsScreen: React.FC<AppointmentsScreenProps> = ({
   const [selectedDate, setSelectedDate] = useState<Date>(availableDates[0]);
 
   const TIME_SLOTS = [
-    '12:30 - 01:00 PM',
-    '01:00 - 01:30 PM',
-    '02:00 - 02:30 PM',
-    '03:00 - 03:30 PM',
-    '04:30 - 05:00 PM',
-    '05:30 - 06:00 PM',
-    '06:30 - 07:00 PM',
-    '07:30 - 08:00 PM',
-    '08:30 - 09:00 PM',
-    '09:00 - 09:30 PM',
+    '12:30 - 13:00',
+    '14:00 - 14:30',
+    '15:30 - 16:00',
+    '17:00 - 17:30',
+    '18:00 - 18:30',
+    '19:00 - 19:30',
+    '20:00 - 20:30',
+    '21:00 - 21:30',
   ];
 
-  const [selectedSlot, setSelectedSlot] = useState<string>(TIME_SLOTS[0]);
-  const [isBooking, setIsBooking] = useState(false);
+  const [selectedSlot, setSelectedSlot] = useState<string>(TIME_SLOTS[4]);
+  const [loading, setLoading] = useState(false);
 
   const handleBook = async () => {
-    setIsBooking(true);
     try {
+      setLoading(true);
       const dateStr = selectedDate.toISOString().split('T')[0];
-
       await bookAppointment({
         patientId: currentUser.id,
         patientName: currentUser.fullName,
@@ -90,16 +89,25 @@ export const AppointmentsScreen: React.FC<AppointmentsScreenProps> = ({
         price: selectedService.estimatedPrice,
       });
 
-      setIsBooking(false);
       Alert.alert(
-        language === 'ar' ? 'تم الحجز بنجاح' : 'Booking Confirmed',
+        language === 'ar' ? 'تم تأكيد الحجز' : 'Appointment Confirmed',
         language === 'ar'
-          ? `تم حجز موعدك لخدمة "${selectedService.nameAr}" يوم ${dateStr} في تمام ${selectedSlot}.\nالدفع عند الحضور في العيادة.`
-          : `Your appointment for "${selectedService.nameEn}" on ${dateStr} at ${selectedSlot} is confirmed.\nPay upon arrival.`
+          ? `تم حجز موعدك بنجاح يوم ${dateStr} في تمام ${selectedSlot} بعيادة د. كريم أبو بكر.`
+          : `Appointment booked on ${dateStr} at ${selectedSlot}.`,
+        [
+          {
+            text: language === 'ar' ? 'عرض حجوزاتي' : 'View Appointments',
+            onPress: () => {},
+          },
+        ]
       );
     } catch (e) {
-      setIsBooking(false);
-      console.warn('Booking error', e);
+      Alert.alert(
+        language === 'ar' ? 'خطأ' : 'Error',
+        language === 'ar' ? 'تعذر إتمام الحجز' : 'Failed to book appointment'
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -117,7 +125,7 @@ export const AppointmentsScreen: React.FC<AppointmentsScreenProps> = ({
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.servicesScroll}
         >
-          {DEFAULT_SERVICES.map((srv) => {
+          {activeServices.map((srv) => {
             const isSelected = selectedService.id === srv.id;
             return (
               <TouchableOpacity
@@ -263,7 +271,7 @@ export const AppointmentsScreen: React.FC<AppointmentsScreenProps> = ({
         <TouchableOpacity
           style={styles.confirmButton}
           onPress={handleBook}
-          disabled={isBooking}
+          disabled={loading}
         >
           <CheckCircle size={20} color={Colors.white} />
           <Text style={styles.confirmButtonText}>{t.confirmBooking}</Text>

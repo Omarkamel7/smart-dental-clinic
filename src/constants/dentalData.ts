@@ -1,4 +1,4 @@
-import { ToothInfo, DentalService, ClinicInfo, BeforeAfterCase } from '../types';
+import { ToothInfo, DentalService, ClinicInfo, BeforeAfterCase, ClinicSettings } from '../types';
 
 export const FDI_TEETH: ToothInfo[] = [
   // Upper Right (Quadrant 1) - FDI 18 down to 11
@@ -155,6 +155,23 @@ export const CLINIC_INFO: ClinicInfo = {
   experienceYears: 12,
   rating: 4.9,
   reviewCount: 428,
+};
+
+export const DEFAULT_CLINIC_SETTINGS: ClinicSettings = {
+  id: 'main',
+  doctorName: 'د. كريم أبو بكر',
+  doctorTitle: 'استشاري طب وجراحة وتجميل وزراعة الأسنان',
+  doctorBio: 'تقديم أحدث الحلول العلاجية والتجميلية وزراعة وتجميل الأسنان بأعلى معايير التعقيم العالمية وأحدث التقنيات الرقمية المتقدمة.',
+  avatarUrl: '',
+  coverImageUrl: '',
+  yearsExperience: 12,
+  patientsCount: 3500,
+  rating: 4.9,
+  phoneNumber: '+20 100 123 4567',
+  whatsappNumber: '+201001234567',
+  locationAddress: 'مصر الجديدة - القاهرة',
+  locationMapsUrl: 'https://maps.google.com',
+  workingHours: 'السبت - الخميس: 12:00 م - 10:00 م',
 };
 
 export const INITIAL_BEFORE_AFTER_CASES: BeforeAfterCase[] = [

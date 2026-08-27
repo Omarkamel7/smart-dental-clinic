@@ -88,16 +88,20 @@ export const MedicalRecordsScreen: React.FC<MedicalRecordsScreenProps> = ({
       <View style={styles.profileBox}>
         <View style={styles.avatar}>
           <Text style={styles.avatarText}>
-            {currentUser.fullName.charAt(0)}
+            {(currentUser.fullName || 'م').charAt(0)}
           </Text>
         </View>
         <View style={styles.profileInfo}>
-          <Text style={styles.patientName}>{currentUser.fullName}</Text>
-          <Text style={styles.patientPhone}>{currentUser.phone}</Text>
+          <Text style={styles.patientName}>
+            {currentUser.fullName || (language === 'ar' ? 'مريض جديد' : 'New Patient')}
+          </Text>
+          <Text style={styles.patientPhone}>
+            {currentUser.phone || (language === 'ar' ? 'حساب مسجل' : 'Registered Account')}
+          </Text>
           <View style={styles.fileNoBadge}>
             <Text style={styles.fileNoText}>
               {language === 'ar' ? 'رقم الملف الطبي:' : 'Medical File #'} PT-
-              {currentUser.id.slice(-4)}
+              {currentUser.id ? currentUser.id.slice(-4) : '0001'}
             </Text>
           </View>
         </View>
@@ -110,13 +114,17 @@ export const MedicalRecordsScreen: React.FC<MedicalRecordsScreenProps> = ({
 
       {myComplaints.length === 0 ? (
         <View style={styles.emptyCard}>
-          <FileText size={40} color={Colors.textMuted} />
-          <Text style={styles.emptyText}>{t.noConsultations}</Text>
+          <FileText size={40} color={Colors.textMuted} style={{ marginBottom: 8 }} />
+          <Text style={styles.emptyText}>
+            {language === 'ar' ? 'لم تقم بإرسال أي طلب استشارة بعد' : 'You have not submitted any consultation requests yet'}
+          </Text>
           <TouchableOpacity
             style={styles.newConsultBtn}
             onPress={() => navigation.navigate('ComplaintIntake')}
           >
-            <Text style={styles.newConsultBtnText}>{t.startConsultation}</Text>
+            <Text style={styles.newConsultBtnText}>
+              {language === 'ar' ? 'طلب استشارة جديدة' : 'Request New Consultation'}
+            </Text>
           </TouchableOpacity>
         </View>
       ) : (

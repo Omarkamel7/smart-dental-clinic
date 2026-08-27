@@ -168,7 +168,7 @@ export const ComplaintIntakeScreen: React.FC<ComplaintIntakeScreenProps> = ({ na
         photoUris: uploadedPhotoUrls,
         xrayUris: uploadedXrayUrls,
         medicalAlerts,
-        urgencyLevel: calculatedUrgency,
+        urgencyLevel: calculateUrgency(),
       });
 
       setIsSubmitting(false);

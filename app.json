@@ -18,7 +18,14 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0284c7"
-      }
+      },
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS"
+      ],
+      "package": "com.omarsala7steam.smartdentalclinic"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -36,6 +43,18 @@
           "microphonePermission": "The app needs access to your microphone to record voice notes describing dental symptoms."
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "94e65c8f-92b9-447d-bd66-f3edf03b7477"
+      }
+    },
+    "owner": "omarsala7s-team",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/94e65c8f-92b9-447d-bd66-f3edf03b7477"
+    }
   }
 }

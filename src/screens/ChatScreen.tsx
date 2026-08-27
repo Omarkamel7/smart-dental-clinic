@@ -486,8 +486,15 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ route, navigation }) => 
         contentContainerStyle={styles.messagesList}
         ListEmptyComponent={
           <View style={styles.emptyMessagesBox}>
-            <Info size={32} color={Colors.textMuted} />
-            <Text style={styles.emptyMessagesText}>{t.noMessagesYet}</Text>
+            <Stethoscope size={40} color={Colors.primary} style={{ marginBottom: 8 }} />
+            <Text style={styles.emptyMessagesTitle}>
+              {language === 'ar' ? 'ابدأ المحادثة مع الطبيب الآن' : 'Start your consultation with the doctor'}
+            </Text>
+            <Text style={styles.emptyMessagesText}>
+              {language === 'ar'
+                ? 'يمكنك إرسال استفساراتك، صور الأسنان أو الأشعة، والتسجيلات الصوتية مباشرة.'
+                : 'Send questions, dental X-rays, or voice notes directly.'}
+            </Text>
           </View>
         }
       />
@@ -698,12 +705,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 60,
-    gap: 10,
+    paddingHorizontal: 20,
+    gap: 6,
+  },
+  emptyMessagesTitle: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: Colors.textPrimary,
+    textAlign: 'center',
   },
   emptyMessagesText: {
-    fontSize: 13,
+    fontSize: 12,
     color: Colors.textMuted,
     fontWeight: '600',
+    textAlign: 'center',
+    lineHeight: 18,
   },
   messageRow: {
     flexDirection: 'row',

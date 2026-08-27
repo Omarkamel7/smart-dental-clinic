@@ -99,6 +99,59 @@ export const DoctorDashboardScreen: React.FC<DoctorDashboardScreenProps> = ({
         </View>
       </View>
 
+      {/* Doctor Management Quick Actions */}
+      <View style={styles.managementSection}>
+        <Text style={styles.sectionTitle}>
+          {language === 'ar' ? '⚙️ أدوات إدارة العيادة والمحتوى:' : '⚙️ Clinic & Content Management:'}
+        </Text>
+        <View style={styles.managementGrid}>
+          <TouchableOpacity
+            style={styles.manageCard}
+            onPress={() => navigation.navigate('EditClinic')}
+          >
+            <View style={[styles.manageIconCircle, { backgroundColor: '#e0f2fe' }]}>
+              <Stethoscope size={20} color={Colors.primary} />
+            </View>
+            <Text style={styles.manageCardTitle}>
+              {language === 'ar' ? 'بيانات العيادة والصور' : 'Clinic & Doctor Info'}
+            </Text>
+            <Text style={styles.manageCardSub}>
+              {language === 'ar' ? 'تعديل السيرة وأرقام التواصل' : 'Update bio, contact & hours'}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.manageCard}
+            onPress={() => navigation.navigate('ManageServices')}
+          >
+            <View style={[styles.manageIconCircle, { backgroundColor: '#f0fdf4' }]}>
+              <Activity size={20} color="#16a34a" />
+            </View>
+            <Text style={styles.manageCardTitle}>
+              {language === 'ar' ? 'الخدمات والأسعار' : 'Services & Prices'}
+            </Text>
+            <Text style={styles.manageCardSub}>
+              {language === 'ar' ? 'إضافة وتعديل أسعار الكشوفات' : 'Add/edit treatment prices'}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.manageCard}
+            onPress={() => navigation.navigate('ManagePortfolio')}
+          >
+            <View style={[styles.manageIconCircle, { backgroundColor: '#fef3c7' }]}>
+              <Users size={20} color="#d97706" />
+            </View>
+            <Text style={styles.manageCardTitle}>
+              {language === 'ar' ? 'معرض الأعمال (قبل/بعد)' : 'Portfolio (Before/After)'}
+            </Text>
+            <Text style={styles.manageCardSub}>
+              {language === 'ar' ? 'رفع صور وتفاصيل الحالات' : 'Upload case transformations'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
       {/* Section 1: Pending Complaints Requiring Diagnosis */}
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>{t.incomingComplaints}</Text>
@@ -454,5 +507,44 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
     color: Colors.primary,
+  },
+  managementSection: {
+    marginBottom: 16,
+  },
+  managementGrid: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  manageCard: {
+    flex: 1,
+    backgroundColor: Colors.surface,
+    borderRadius: 14,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    alignItems: 'center',
+    textAlign: 'center',
+    ...Shadows.sm,
+  },
+  manageIconCircle: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 6,
+  },
+  manageCardTitle: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: Colors.textPrimary,
+    textAlign: 'center',
+    marginBottom: 2,
+  },
+  manageCardSub: {
+    fontSize: 9,
+    color: Colors.textMuted,
+    textAlign: 'center',
+    lineHeight: 12,
   },
 });

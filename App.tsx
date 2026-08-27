@@ -27,6 +27,9 @@ import { DoctorDashboardScreen } from './src/screens/DoctorDashboardScreen';
 import { DoctorConsultationDetailScreen } from './src/screens/DoctorConsultationDetailScreen';
 import { ChatScreen } from './src/screens/ChatScreen';
 import { AuthScreen } from './src/screens/AuthScreen';
+import { EditClinicScreen } from './src/screens/doctor/EditClinicScreen';
+import { ManageServicesScreen } from './src/screens/doctor/ManageServicesScreen';
+import { ManagePortfolioScreen } from './src/screens/doctor/ManagePortfolioScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -261,6 +264,30 @@ const MainNavigation = () => {
         <Stack.Screen
           name="Auth"
           component={AuthScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+
+        <Stack.Screen
+          name="EditClinic"
+          component={EditClinicScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+
+        <Stack.Screen
+          name="ManageServices"
+          component={ManageServicesScreen}
+          options={{
+            headerShown: false,
+          }}
+        />
+
+        <Stack.Screen
+          name="ManagePortfolio"
+          component={ManagePortfolioScreen}
           options={{
             headerShown: false,
           }}

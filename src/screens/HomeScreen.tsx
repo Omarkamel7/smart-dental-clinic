@@ -33,24 +33,40 @@ interface HomeScreenProps {
 }
 
 export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
-  const { language, setLanguage, role, setRole, t, isRTL, beforeAfterCases } = useApp();
+  const {
+    language,
+    setLanguage,
+    role,
+    setRole,
+    t,
+    isRTL,
+    clinicSettings,
+    services,
+    portfolioCases,
+  } = useApp();
 
   const handleCall = () => {
-    Linking.openURL(`tel:${CLINIC_INFO.phone}`).catch(console.warn);
+    const phone = clinicSettings?.phoneNumber || CLINIC_INFO.phone;
+    Linking.openURL(`tel:${phone}`).catch(console.warn);
   };
 
   const handleWhatsApp = () => {
+    const phone = clinicSettings?.whatsappNumber || CLINIC_INFO.whatsapp;
     const text = encodeURIComponent(
       language === 'ar'
         ? 'مرحباً د. كريم، أود الاستفسار بخصوص استشارة بالعيادة.'
         : 'Hello Dr. Karim, I would like to inquire about a clinic consultation.'
     );
-    Linking.openURL(`https://wa.me/${CLINIC_INFO.whatsapp}?text=${text}`).catch(console.warn);
+    Linking.openURL(`https://wa.me/${phone.replace(/[^0-9]/g, '')}?text=${text}`).catch(console.warn);
   };
 
   const handleMap = () => {
-    const url = `https://www.google.com/maps/search/?api=1&query=${CLINIC_INFO.mapLatitude},${CLINIC_INFO.mapLongitude}`;
-    Linking.openURL(url).catch(console.warn);
+    if (clinicSettings?.locationMapsUrl) {
+      Linking.openURL(clinicSettings.locationMapsUrl).catch(console.warn);
+    } else {
+      const url = `https://www.google.com/maps/search/?api=1&query=${CLINIC_INFO.mapLatitude},${CLINIC_INFO.mapLongitude}`;
+      Linking.openURL(url).catch(console.warn);
+    }
   };
 
   return (
@@ -82,11 +98,19 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
       <View style={styles.heroCard}>
         <View style={styles.heroHeaderCentered}>
           <View style={styles.doctorAvatarContainer}>
-            <Image
-              source={require('../../assets/doctor_clinic.jpg')}
-              style={styles.doctorAvatar}
-              resizeMode="cover"
-            />
+            {clinicSettings?.avatarUrl ? (
+              <Image
+                source={{ uri: clinicSettings.avatarUrl }}
+                style={styles.doctorAvatar}
+                resizeMode="cover"
+              />
+            ) : (
+              <Image
+                source={require('../../assets/doctor_clinic.jpg')}
+                style={styles.doctorAvatar}
+                resizeMode="cover"
+              />
+            )}
             <View style={styles.verifiedBadge}>
               <ShieldCheck size={14} color={Colors.white} />
             </View>
@@ -94,15 +118,15 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
 
           <View style={styles.heroTextContainerCentered}>
             <Text style={styles.doctorName}>
-              {language === 'ar' ? CLINIC_INFO.doctorNameAr : CLINIC_INFO.doctorNameEn}
+              {clinicSettings?.doctorName || (language === 'ar' ? CLINIC_INFO.doctorNameAr : CLINIC_INFO.doctorNameEn)}
             </Text>
             <Text style={styles.doctorTitle}>
-              {language === 'ar' ? CLINIC_INFO.doctorTitleAr : CLINIC_INFO.doctorTitleEn}
+              {clinicSettings?.doctorTitle || (language === 'ar' ? CLINIC_INFO.doctorTitleAr : CLINIC_INFO.doctorTitleEn)}
             </Text>
             <View style={styles.ratingPill}>
               <Star size={14} color="#eab308" fill="#eab308" />
-              <Text style={styles.ratingText}>{CLINIC_INFO.rating}</Text>
-              <Text style={styles.reviewCount}>({CLINIC_INFO.reviewCount}+ مريض)</Text>
+              <Text style={styles.ratingText}>{clinicSettings?.rating || CLINIC_INFO.rating}</Text>
+              <Text style={styles.reviewCount}>({clinicSettings?.patientsCount || CLINIC_INFO.reviewCount}+ مريض)</Text>
             </View>
           </View>
         </View>
@@ -111,19 +135,19 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         <View style={styles.statsRow}>
           <View style={styles.statItem}>
             <Award size={18} color={Colors.primary} />
-            <Text style={styles.statNumber}>+12</Text>
+            <Text style={styles.statNumber}>+{clinicSettings?.yearsExperience || 12}</Text>
             <Text style={styles.statLabel}>{t.yearsExperience}</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
             <Users size={18} color={Colors.secondary} />
-            <Text style={styles.statNumber}>+5000</Text>
+            <Text style={styles.statNumber}>+{clinicSettings?.patientsCount || 3500}</Text>
             <Text style={styles.statLabel}>{t.satisfiedPatients}</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
             <Sparkles size={18} color="#eab308" />
-            <Text style={styles.statNumber}>4.9/5</Text>
+            <Text style={styles.statNumber}>{clinicSettings?.rating || 4.9}/5</Text>
             <Text style={styles.statLabel}>{t.ratingScore}</Text>
           </View>
         </View>
@@ -148,61 +172,68 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
             <ChevronRight
               size={20}
               color={Colors.primary}
-              style={{ transform: [{ rotate: isRTL ? '180deg' : '0deg' }] }}
+              style={{ transform: [{ scaleX: isRTL ? -1 : 1 }] }}
             />
           </View>
         </TouchableOpacity>
 
-        {/* 2. Book Appointment */}
+        {/* 2. Direct Medical Chat */}
         <TouchableOpacity
-          style={styles.secondaryActionCard}
-          onPress={() => navigation.navigate('Appointments')}
+          style={styles.chatActionCard}
+          onPress={() => navigation.navigate('Chat')}
           activeOpacity={0.85}
         >
-          <View style={styles.actionIconBubbleTeal}>
-            <Calendar size={26} color={Colors.white} />
+          <View style={styles.chatIconBubble}>
+            <MessageSquare size={24} color={Colors.white} />
           </View>
           <View style={styles.actionContent}>
-            <Text style={styles.actionTitleTeal}>{t.bookAppointment}</Text>
-            <Text style={styles.actionSubtitle}>{t.bookAppointmentSub}</Text>
+            <Text style={styles.chatActionTitle}>
+              {language === 'ar' ? 'تواصل مباشرة مع الطبيب' : 'Chat with Doctor'}
+            </Text>
+            <Text style={styles.chatActionSubtitle}>
+              {language === 'ar'
+                ? 'استشارة فورية بالصوت والصور والأشعة'
+                : 'Direct messaging with voice notes & photos'}
+            </Text>
           </View>
           <View style={styles.actionArrow}>
             <ChevronRight
               size={20}
-              color={Colors.secondary}
-              style={{ transform: [{ rotate: isRTL ? '180deg' : '0deg' }] }}
+              color="#0284c7"
+              style={{ transform: [{ scaleX: isRTL ? -1 : 1 }] }}
             />
           </View>
         </TouchableOpacity>
+
+        {/* Quick Contact & Booking Row */}
+        <View style={styles.quickRow}>
+          <TouchableOpacity
+            style={styles.quickBtn}
+            onPress={() => navigation.navigate('Appointments')}
+          >
+            <Calendar size={18} color={Colors.primary} />
+            <Text style={styles.quickBtnText}>{t.bookAppointment}</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.quickBtn} onPress={handleCall}>
+            <Phone size={18} color={Colors.secondary} />
+            <Text style={styles.quickBtnText}>{t.callDoctor}</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.quickBtn} onPress={handleWhatsApp}>
+            <MessageSquare size={18} color="#25D366" />
+            <Text style={styles.quickBtnText}>{t.whatsapp}</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
-      {/* Direct Clinic Contact Buttons */}
-      <View style={styles.contactBar}>
-        <TouchableOpacity onPress={handleCall} style={styles.contactBtnPhone}>
-          <Phone size={18} color={Colors.white} />
-          <Text style={styles.contactBtnTextWhite}>{t.callNow}</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity onPress={handleWhatsApp} style={styles.contactBtnWhatsapp}>
-          <MessageSquare size={18} color={Colors.white} />
-          <Text style={styles.contactBtnTextWhite}>{t.chatWhatsapp}</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity onPress={handleMap} style={styles.contactBtnMap}>
-          <MapPin size={18} color={Colors.primaryDark} />
-          <Text style={styles.contactBtnTextDark}>
-            {language === 'ar' ? 'الخريطة' : 'Map'}
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Dental Services Grid */}
+      {/* Services Grid (Dynamic) */}
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>{t.ourServices}</Text>
       </View>
 
       <View style={styles.servicesGrid}>
-        {DEFAULT_SERVICES.map((service) => (
+        {(services.length > 0 ? services : DEFAULT_SERVICES).map((service: any) => (
           <TouchableOpacity
             key={service.id}
             style={styles.serviceCard}
@@ -231,31 +262,41 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         ))}
       </View>
 
-      {/* Smile Makeover Before & After Gallery */}
+      {/* Smile Makeover Before & After Gallery (Dynamic) */}
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>{t.smileGallery}</Text>
       </View>
 
       <View style={styles.galleryContainer}>
-        {beforeAfterCases.map((item) => (
+        {portfolioCases.map((item: any) => (
           <BeforeAfterSlider key={item.id} item={item} />
         ))}
       </View>
 
-      {/* About Dr. Karim Section with Full-Frame Formal Photo */}
+      {/* About Dr. Karim Section with Dynamic Cover Photo */}
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>
-          {language === 'ar' ? 'عن د. كريم أبو بكر' : 'About Dr. Karim Abo Bakr'}
+          {language === 'ar'
+            ? `عن ${clinicSettings?.doctorName || 'د. كريم أبو بكر'}`
+            : `About ${clinicSettings?.doctorName || 'Dr. Karim Abo Bakr'}`}
         </Text>
       </View>
 
       <View style={styles.doctorBioCard}>
         <View style={styles.doctorBioImageContainer}>
-          <Image
-            source={require('../../assets/doctor_formal.jpg')}
-            style={styles.doctorBioImage}
-            resizeMode="cover"
-          />
+          {clinicSettings?.coverImageUrl ? (
+            <Image
+              source={{ uri: clinicSettings.coverImageUrl }}
+              style={styles.doctorBioImage}
+              resizeMode="cover"
+            />
+          ) : (
+            <Image
+              source={require('../../assets/doctor_formal.jpg')}
+              style={styles.doctorBioImage}
+              resizeMode="cover"
+            />
+          )}
           <View style={styles.doctorBioVerifiedBadge}>
             <ShieldCheck size={14} color={Colors.white} />
           </View>
@@ -263,19 +304,21 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
 
         <View style={styles.doctorBioOverlay}>
           <Text style={styles.doctorBioName}>
-            {language === 'ar' ? 'د. كريم أبو بكر' : 'Dr. Karim Abo Bakr'}
+            {clinicSettings?.doctorName || (language === 'ar' ? 'د. كريم أبو بكر' : 'Dr. Karim Abo Bakr')}
           </Text>
           <View style={styles.doctorBioDegreeBadge}>
             <Text style={styles.doctorBioDegree}>
-              {language === 'ar'
-                ? 'استشاري طب وجراحة وتجميل وزراعة الأسنان'
-                : 'Consultant in Dental Surgery, Cosmetics & Implants'}
+              {clinicSettings?.doctorTitle ||
+                (language === 'ar'
+                  ? 'استشاري طب وجراحة وتجميل وزراعة الأسنان'
+                  : 'Consultant in Dental Surgery, Cosmetics & Implants')}
             </Text>
           </View>
           <Text style={styles.doctorBioDesc}>
-            {language === 'ar'
-              ? 'تقديم أحدث الحلول العلاجية والتجميلية وزراعة الأسنان بأعلى معايير التعقيم العالمية وأحدث التقنيات الرقمية المتقدمة.'
-              : 'Dedicated to delivering state-of-the-art cosmetic dentistry, dental implants, and advanced clinical care with international sterilization standards.'}
+            {clinicSettings?.doctorBio ||
+              (language === 'ar'
+                ? 'تقديم أحدث الحلول العلاجية والتجميلية وزراعة الأسنان بأعلى معايير التعقيم العالمية وأحدث التقنيات الرقمية المتقدمة.'
+                : 'Dedicated to delivering state-of-the-art cosmetic dentistry, dental implants, and advanced clinical care.')}
           </Text>
         </View>
       </View>
@@ -285,17 +328,16 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         <Text style={styles.clinicName}>
           {language === 'ar' ? CLINIC_INFO.nameAr : CLINIC_INFO.nameEn}
         </Text>
-        <View style={styles.infoRow}>
+        <TouchableOpacity style={styles.infoRow} onPress={handleMap}>
           <MapPin size={16} color={Colors.primary} />
           <Text style={styles.infoText}>
-            {language === 'ar' ? CLINIC_INFO.addressAr : CLINIC_INFO.addressEn}
+            {clinicSettings?.locationAddress || (language === 'ar' ? CLINIC_INFO.addressAr : CLINIC_INFO.addressEn)}
           </Text>
-        </View>
+        </TouchableOpacity>
         <View style={styles.infoRow}>
           <Calendar size={16} color={Colors.secondary} />
           <Text style={styles.infoText}>
-            {language === 'ar' ? CLINIC_INFO.workingDaysAr : CLINIC_INFO.workingDaysEn} (
-            {language === 'ar' ? CLINIC_INFO.workingHoursAr : CLINIC_INFO.workingHoursEn})
+            {clinicSettings?.workingHours || (language === 'ar' ? CLINIC_INFO.workingHoursAr : CLINIC_INFO.workingHoursEn)}
           </Text>
         </View>
       </View>
@@ -470,6 +512,59 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: Colors.secondary,
     ...Shadows.sm,
+  },
+  chatActionCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f0f9ff',
+    borderRadius: 16,
+    padding: 14,
+    borderWidth: 1.5,
+    borderColor: '#38bdf8',
+    ...Shadows.sm,
+  },
+  chatIconBubble: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#0284c7',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  chatActionTitle: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#0369a1',
+    marginBottom: 2,
+  },
+  chatActionSubtitle: {
+    fontSize: 12,
+    color: Colors.textSecondary,
+    lineHeight: 16,
+  },
+  quickRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 4,
+  },
+  quickBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.surface,
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    gap: 6,
+    ...Shadows.sm,
+  },
+  quickBtnText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: Colors.textPrimary,
   },
   actionIconBubble: {
     width: 48,

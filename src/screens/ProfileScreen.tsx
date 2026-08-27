@@ -72,6 +72,7 @@ export const ProfileScreen: React.FC = () => {
         fullName: fullName.trim(),
         phone: phone.trim(),
         medicalHistory: {
+          ...currentUser.medicalHistory,
           hasDiabetes,
           hasHypertension,
           hasPenicillinAllergy,
@@ -131,6 +132,45 @@ export const ProfileScreen: React.FC = () => {
           </Text>
         </TouchableOpacity>
       </View>
+
+      {/* Doctor Management Options (Only shown for Doctors) */}
+      {role === 'doctor' && (
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <Shield size={18} color={Colors.primary} />
+            <Text style={styles.cardTitle}>
+              {language === 'ar' ? 'أدوات إدارة العيادة والمحتوى' : 'Clinic Management Tools'}
+            </Text>
+          </View>
+
+          <TouchableOpacity
+            style={styles.doctorToolBtn}
+            onPress={() => navigation?.navigate('EditClinic')}
+          >
+            <Text style={styles.doctorToolBtnText}>
+              {language === 'ar' ? '✏️ تعديل بيانات العيادة والطبيب' : '✏️ Edit Clinic & Doctor Info'}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.doctorToolBtn}
+            onPress={() => navigation?.navigate('ManageServices')}
+          >
+            <Text style={styles.doctorToolBtnText}>
+              {language === 'ar' ? '💲 إدارة الخدمات والأسعار' : '💲 Manage Services & Prices'}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.doctorToolBtn}
+            onPress={() => navigation?.navigate('ManagePortfolio')}
+          >
+            <Text style={styles.doctorToolBtnText}>
+              {language === 'ar' ? '🖼️ إدارة معرض الأعمال (قبل/بعد)' : '🖼️ Manage Portfolio (Before/After)'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       {/* Language Setting Card */}
       <View style={styles.card}>
@@ -571,5 +611,19 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
     color: Colors.emergency,
+  },
+  doctorToolBtn: {
+    backgroundColor: Colors.primaryLight,
+    borderWidth: 1,
+    borderColor: Colors.primary,
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    marginBottom: 8,
+  },
+  doctorToolBtnText: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: Colors.primaryDark,
   },
 });

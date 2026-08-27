@@ -31,7 +31,7 @@ export const translations = {
     photoMessage: 'صورة مرفقة',
     onlineNow: 'متاح للرد الآن',
     caseAttached: 'مرتبط بالحالة',
-    noMessagesYet: 'لا توجد رسائل سابقة. ابدأ المحادثة الآن!',
+    noMessagesYet: 'ابدأ المحادثة مع الطبيب الآن',
     doctorOnlineBadge: 'د. كريم أبو بكر (استشاري الأسنان)',
     patientOnlineBadge: 'المريض',
     
@@ -67,6 +67,8 @@ export const translations = {
     smileGallery: 'معرض الابتسامات (قبل وبعد)',
     contactClinic: 'تواصل مباشر مع العيادة',
     callNow: 'اتصال هاتفي',
+    callDoctor: 'اتصال بالطبيب',
+    whatsapp: 'واتساب',
     chatWhatsapp: 'محادثة واتساب',
     clinicAddress: 'موقع العيادة على الخريطة',
     workingHours: 'مواعيد العمل',
@@ -133,7 +135,7 @@ export const translations = {
     firstAidInstructions: 'إرشادات وتسكين فوري:',
     doctorNotes: 'ملاحظات وتوصيات الطبيب:',
     bookRecommendedVisit: 'حجز الموعد المقترح بالعيادة الآن',
-    chatWithDoctor: 'محادثة الطبيب بشأن هذه الحالة',
+    chatWithDoctorCase: 'محادثة الطبيب بشأن هذه الحالة',
     
     // Appointments Screen
     appointmentsTitle: 'حجز المواعيد',
@@ -143,7 +145,7 @@ export const translations = {
     confirmBooking: 'تأكيد الحجز والدفع في العيادة',
     bookingSuccess: 'تم تأكيد موعدك بنجاح!',
     myAppointments: 'مواعيدي المسجلة',
-    noAppointments: 'لا توجد مواعيد حالية مسجلة',
+    noAppointments: 'لا توجد مواعيد مسجلة حالياً',
     cancelAppointment: 'إلغاء الموعد',
     appointmentDate: 'التاريخ',
     appointmentTime: 'الوقت',
@@ -153,7 +155,7 @@ export const translations = {
     // Medical Records Screen
     medicalRecordsTitle: 'السجل الطبي والاستشارات',
     previousConsultations: 'الاستشارات والشكاوى السابقة',
-    noConsultations: 'لا توجد استشارات سابقة حتى الآن',
+    noConsultations: 'لم تقم بإرسال أي طلب استشارة بعد',
     viewDetails: 'عرض التفاصيل والتشخيص',
     consultationDate: 'تاريخ الشكوى',
     
@@ -214,6 +216,9 @@ export const translations = {
     caseAttached: 'Linked to Case',
     noMessagesYet: 'No messages yet. Start your consultation chat now!',
     doctorOnlineBadge: 'Dr. Karim Abo Bakr (Dental Specialist)',
+    patientOnlineBadge: 'Patient',
+    callDoctor: 'Call Doctor',
+    whatsapp: 'WhatsApp',
     // Auth & Accounts
     authTitle: 'Welcome & Sign In',
     authSubtitle: 'Welcome to Dr. Karim Abo Bakr Smart Dental System',
@@ -312,7 +317,7 @@ export const translations = {
     firstAidInstructions: 'Immediate Care & Pain Relief:',
     doctorNotes: 'Doctor Notes & Recommendation:',
     bookRecommendedVisit: 'Book Recommended Clinic Visit Now',
-    chatWithDoctor: 'Chat with Doctor regarding this case',
+    chatWithDoctorCase: 'Chat with Doctor regarding this case',
     
     // Appointments Screen
     appointmentsTitle: 'Book Appointment',

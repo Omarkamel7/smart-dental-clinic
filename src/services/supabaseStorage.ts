@@ -5,16 +5,15 @@ import { supabase, isSupabaseConfigured } from './supabase';
  */
 export async function uploadDentalMedia(
   uri: string,
-  folder: 'photos' | 'audio',
+  folder: 'photos' | 'audio' | 'clinic' | 'portfolio',
   userId: string = 'anonymous'
 ): Promise<string | null> {
   if (!isSupabaseConfigured) {
-    // If Supabase is not configured, return local URI for mock/local development
     return uri;
   }
 
   try {
-    const ext = uri.split('.').pop() || (folder === 'photos' ? 'jpg' : 'm4a');
+    const ext = uri.split('.').pop() || (folder === 'audio' ? 'm4a' : 'jpg');
     const fileName = `${folder}/${userId}_${Date.now()}_${Math.random().toString(36).substring(7)}.${ext}`;
 
     const response = await fetch(uri);
@@ -24,7 +23,7 @@ export async function uploadDentalMedia(
     const { data, error } = await supabase.storage
       .from('dental-media')
       .upload(fileName, arrayBuffer, {
-        contentType: folder === 'photos' ? `image/${ext === 'png' ? 'png' : 'jpeg'}` : 'audio/m4a',
+        contentType: folder === 'audio' ? 'audio/m4a' : `image/${ext === 'png' ? 'png' : 'jpeg'}`,
         upsert: false,
       });
 
@@ -51,5 +50,20 @@ export async function uploadDentalPhoto(uri: string, userId?: string): Promise<s
 
 export async function uploadDentalAudio(uri: string, userId?: string): Promise<string> {
   const result = await uploadDentalMedia(uri, 'audio', userId);
+  return result || uri;
+}
+
+export async function uploadDoctorAvatar(uri: string): Promise<string> {
+  const result = await uploadDentalMedia(uri, 'clinic', 'doctor_avatar');
+  return result || uri;
+}
+
+export async function uploadDoctorCover(uri: string): Promise<string> {
+  const result = await uploadDentalMedia(uri, 'clinic', 'doctor_cover');
+  return result || uri;
+}
+
+export async function uploadPortfolioImage(uri: string, prefix: 'before' | 'after'): Promise<string> {
+  const result = await uploadDentalMedia(uri, 'portfolio', `case_${prefix}`);
   return result || uri;
 }

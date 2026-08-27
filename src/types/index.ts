@@ -109,8 +109,9 @@ export interface BeforeAfterCase {
   descriptionEn: string;
   beforeImageUrl: string;
   afterImageUrl: string;
-  dentistName: string;
-  durationWeeks: number;
+  dentistName?: string;
+  durationWeeks?: number;
+  createdAt?: string;
 }
 
 export interface ChatMessage {
@@ -123,6 +124,23 @@ export interface ChatMessage {
   audioUri?: string;
   imageUri?: string;
   timestamp: string;
+}
+
+export interface ClinicSettings {
+  id: string;
+  doctorName: string;
+  doctorTitle: string;
+  doctorBio: string;
+  avatarUrl: string;
+  coverImageUrl: string;
+  yearsExperience: number;
+  patientsCount: number;
+  rating: number;
+  phoneNumber: string;
+  whatsappNumber: string;
+  locationAddress: string;
+  locationMapsUrl: string;
+  workingHours: string;
 }
 
 export interface ClinicInfo {
