@@ -104,13 +104,17 @@ export async function checkForAppUpdates(): Promise<UpdateCheckResult> {
       const release = await response.json();
       const latestTag = (release.tag_name || '').replace('v', '').trim();
       
-      // Find APK download URL from assets if available
-      let apkUrl = release.html_url || 'https://github.com/Omarkamel7/smart-dental-clinic/releases/latest';
+      // Find APK download URL from assets or body if available
+      let apkUrl = 'https://expo.dev/accounts/omarsala7s-team/projects/smart-dental-clinic/builds/94cb967b-efc4-4325-aa74-3d675b39072c';
       if (release.assets && Array.isArray(release.assets)) {
         const apkAsset = release.assets.find((a: any) => a.name?.endsWith('.apk'));
         if (apkAsset && apkAsset.browser_download_url) {
           apkUrl = apkAsset.browser_download_url;
         }
+      }
+      const expoBuildMatch = release.body?.match(/https:\/\/expo\.dev\/accounts\/[^\s\)\<\"]+/);
+      if (expoBuildMatch) {
+        apkUrl = expoBuildMatch[0];
       }
 
       if (latestTag && isNewerVersion(latestTag, APP_VERSION_DATA.version)) {
