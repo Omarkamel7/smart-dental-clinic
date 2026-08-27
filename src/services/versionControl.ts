@@ -47,6 +47,28 @@ export interface UpdateCheckResult {
   isMandatory: boolean;
 }
 
+function isNewerVersion(remote: string, local: string): boolean {
+  const rParts = remote.split('.').map((n) => parseInt(n, 10) || 0);
+  const lParts = local.split('.').map((n) => parseInt(n, 10) || 0);
+  for (let i = 0; i < Math.max(rParts.length, lParts.length); i++) {
+    const r = rParts[i] ?? 0;
+    const l = lParts[i] ?? 0;
+    if (r > l) return true;
+    if (r < l) return false;
+  }
+  return false;
+}
+
+function cleanMarkdownNotes(text: string): string {
+  if (!text) return '';
+  return text
+    .replace(/###+/g, '')
+    .replace(/\*\*/g, '')
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    .replace(/👉/g, '•')
+    .trim();
+}
+
 /**
  * Checks for new app updates via GitHub releases and Expo OTA updates.
  */
@@ -89,14 +111,15 @@ export async function checkForAppUpdates(): Promise<UpdateCheckResult> {
         }
       }
 
-      if (latestTag && latestTag !== APP_VERSION_DATA.version) {
+      if (latestTag && isNewerVersion(latestTag, APP_VERSION_DATA.version)) {
+        const cleanNotes = cleanMarkdownNotes(release.body) || 'تحسينات جديدة في الأداء والواجهات وإصلاحات للنظام.';
         return {
           hasUpdate: true,
           hasOtaUpdate: hasOta,
           version: latestTag,
           apkDownloadUrl: apkUrl,
-          releaseNotesAr: release.body || 'تحسينات جديدة في الأداء والواجهات وإصلاحات للنظام.',
-          releaseNotesEn: release.body || 'New UI enhancements, features, and performance fixes.',
+          releaseNotesAr: cleanNotes,
+          releaseNotesEn: cleanNotes,
           isMandatory: false,
         };
       }
