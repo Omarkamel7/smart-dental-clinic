@@ -143,18 +143,18 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ navigation }) => {
       }
 
       if (data.user) {
-        // Insert into public.profiles
+        // Insert into public.profiles as Patient
         await supabase.from('profiles').upsert({
           id: data.user.id,
           full_name: fullName.trim(),
           phone: phone.trim(),
-          role: selectedRole,
+          role: 'patient',
           has_diabetes: false,
           has_hypertension: false,
           has_penicillin_allergy: false,
         });
 
-        setRole(selectedRole);
+        setRole('patient');
         updateUserProfile({
           id: data.user.id,
           fullName: fullName.trim(),
@@ -261,60 +261,6 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ navigation }) => {
           {/* Form Fields */}
           {mode === 'signup' && (
             <>
-              {/* Role Selection */}
-              <Text style={styles.fieldLabel}>{t.chooseRole}</Text>
-              <View style={styles.rolePickerRow}>
-                <TouchableOpacity
-                  style={[
-                    styles.roleChip,
-                    selectedRole === 'patient' && styles.roleChipActive,
-                  ]}
-                  onPress={() => setSelectedRole('patient')}
-                >
-                  <User
-                    size={16}
-                    color={
-                      selectedRole === 'patient'
-                        ? Colors.primary
-                        : Colors.textSecondary
-                    }
-                  />
-                  <Text
-                    style={[
-                      styles.roleChipText,
-                      selectedRole === 'patient' && styles.roleChipTextActive,
-                    ]}
-                  >
-                    {t.iAmPatient}
-                  </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[
-                    styles.roleChip,
-                    selectedRole === 'doctor' && styles.roleChipActive,
-                  ]}
-                  onPress={() => setSelectedRole('doctor')}
-                >
-                  <Stethoscope
-                    size={16}
-                    color={
-                      selectedRole === 'doctor'
-                        ? Colors.primary
-                        : Colors.textSecondary
-                    }
-                  />
-                  <Text
-                    style={[
-                      styles.roleChipText,
-                      selectedRole === 'doctor' && styles.roleChipTextActive,
-                    ]}
-                  >
-                    {t.iAmDoctor}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-
               {/* Full Name */}
               <Text style={styles.fieldLabel}>{t.fullNamePlaceholder}:</Text>
               <View style={styles.inputBox}>
@@ -403,30 +349,15 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ navigation }) => {
 
         {/* Quick Guest Mode Card */}
         <View style={styles.guestCard}>
-          <Text style={styles.guestTitle}>
-            {language === 'ar' ? '⚡ تجربة فورية بدون تسجيل:' : '⚡ Quick Instant Preview:'}
-          </Text>
-          <View style={styles.guestBtnRow}>
-            <TouchableOpacity
-              style={styles.guestBtnPatient}
-              onPress={() => handleGuestMode('patient')}
-            >
-              <User size={16} color={Colors.white} />
-              <Text style={styles.guestBtnText}>
-                {language === 'ar' ? 'دخول كمريض' : 'Patient View'}
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.guestBtnDoctor}
-              onPress={() => handleGuestMode('doctor')}
-            >
-              <Stethoscope size={16} color={Colors.white} />
-              <Text style={styles.guestBtnText}>
-                {language === 'ar' ? 'دخول كطبيب' : 'Doctor View'}
-              </Text>
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity
+            style={styles.guestBtnPatient}
+            onPress={() => handleGuestMode('patient')}
+          >
+            <User size={16} color={Colors.white} />
+            <Text style={styles.guestBtnText}>
+              {language === 'ar' ? '⚡ الدخول كزائر (بدون تسجيل حساب)' : '⚡ Continue as Guest Patient'}
+            </Text>
+          </TouchableOpacity>
         </View>
 
         <View style={{ height: 30 }} />
