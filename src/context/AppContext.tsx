@@ -20,6 +20,21 @@ import {
 } from '../constants/dentalData';
 import { supabase, isSupabaseConfigured } from '../services/supabase';
 
+export interface DoctorInboxItem {
+  consultationId: string;
+  patientId: string;
+  patientName: string;
+  patientPhone: string;
+  lastMessage: string;
+  lastMessageTime: string;
+  urgencyLevel: string;
+  status: string;
+  createdAt: string;
+  photoUrls: string[];
+  description: string;
+  symptoms: string[];
+}
+
 interface AppContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
@@ -27,8 +42,13 @@ interface AppContextType {
   setRole: (role: UserRole) => void;
   currentUser: UserProfile;
   updateUserProfile: (profile: Partial<UserProfile>) => Promise<void>;
+  savePatientQuickProfile: (fullName: string, phone: string) => Promise<void>;
   complaints: DentalComplaint[];
   addComplaint: (complaint: Omit<DentalComplaint, 'id' | 'createdAt' | 'status'>) => Promise<DentalComplaint>;
+  createConsultationWithChat: (
+    complaintData: Omit<DentalComplaint, 'id' | 'createdAt' | 'status'>
+  ) => Promise<{ consultation: DentalComplaint; consultationId: string }>;
+  doctorInbox: DoctorInboxItem[];
   submitDiagnosis: (complaintId: string, diagnosis: PreliminaryDiagnosis) => Promise<void>;
   appointments: Appointment[];
   bookAppointment: (appointment: Omit<Appointment, 'id' | 'createdAt' | 'status'>) => Promise<Appointment>;
@@ -680,6 +700,128 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setCurrentUser(DEFAULT_PATIENT);
   };
 
+  const savePatientQuickProfile = async (fullName: string, phone: string) => {
+    const patientId = currentUser.id && currentUser.id.length > 5 ? currentUser.id : `pat_${Date.now()}`;
+    const updated: UserProfile = {
+      ...currentUser,
+      id: patientId,
+      fullName: fullName.trim(),
+      phone: phone.trim(),
+      role: 'patient',
+    };
+    setCurrentUser(updated);
+    await AsyncStorage.setItem('@dental_app_patient_profile', JSON.stringify(updated));
+
+    if (isSupabaseConfigured) {
+      try {
+        await (supabase.from('profiles') as any).upsert({
+          id: patientId,
+          full_name: fullName.trim(),
+          phone: phone.trim(),
+          role: 'patient',
+        });
+      } catch (err) {
+        console.warn('Error syncing quick patient profile to Supabase:', err);
+      }
+    }
+  };
+
+  const createConsultationWithChat = async (
+    complaintData: Omit<DentalComplaint, 'id' | 'createdAt' | 'status'>
+  ): Promise<{ consultation: DentalComplaint; consultationId: string }> => {
+    const newId = `comp_${Date.now()}`;
+    const newComplaint: DentalComplaint = {
+      ...complaintData,
+      id: newId,
+      status: 'pending',
+      createdAt: new Date().toISOString(),
+    };
+
+    const updatedComplaints = [newComplaint, ...complaints];
+    setComplaints(updatedComplaints);
+    await AsyncStorage.setItem('@dental_app_complaints', JSON.stringify(updatedComplaints));
+
+    // Construct structured clinical introduction message for the chat
+    const symptomsLabel = complaintData.symptoms && complaintData.symptoms.length > 0
+      ? complaintData.symptoms.join('، ')
+      : 'استشارة وفحص عام';
+    const teethLabel = complaintData.selectedTeeth && complaintData.selectedTeeth.length > 0
+      ? `السن رقم: #${complaintData.selectedTeeth.join(', #')}`
+      : 'فحص الفك بالكامل';
+    
+    const initialText = `🚨 طلب استشارة طبية جديد:\n• الأعراض: ${symptomsLabel}\n• موضع الشكوى: ${teethLabel}\n• شدة الألم: ${complaintData.painLevel || 5}/10\n• تفاصيل الحالة: ${complaintData.description || 'لا يوجد وصف إضافي'}`;
+
+    const newMsg: ChatMessage = {
+      id: `msg_init_${Date.now()}`,
+      consultationId: newId,
+      senderId: complaintData.patientId || currentUser.id || 'patient',
+      senderName: complaintData.patientName || currentUser.fullName || 'المريض',
+      senderRole: 'patient',
+      text: initialText,
+      imageUri: complaintData.photoUris && complaintData.photoUris.length > 0 ? complaintData.photoUris[0] : undefined,
+      timestamp: new Date().toISOString(),
+    };
+
+    const updatedMessages = [...messages, newMsg];
+    setMessages(updatedMessages);
+    await AsyncStorage.setItem('@dental_app_messages', JSON.stringify(updatedMessages));
+
+    if (isSupabaseConfigured) {
+      try {
+        // 1. Insert into consultations table
+        await supabase.from('consultations').insert({
+          id: newId,
+          patient_id: complaintData.patientId || currentUser.id,
+          affected_teeth: complaintData.selectedTeeth || [],
+          symptoms: complaintData.symptoms || [],
+          pain_level: complaintData.painLevel || 5,
+          description: complaintData.description || '',
+          image_urls: complaintData.photoUris || [],
+          medical_alerts: complaintData.medicalAlerts || [],
+          urgency_level: complaintData.urgencyLevel || 'routine',
+          status: 'pending',
+        });
+
+        // 2. Insert initial summary message into messages table
+        await supabase.from('messages').insert({
+          consultation_id: newId,
+          sender_id: complaintData.patientId || currentUser.id,
+          sender_role: 'patient',
+          sender_name: complaintData.patientName || currentUser.fullName || 'المريض',
+          text: initialText,
+          image_url: complaintData.photoUris && complaintData.photoUris.length > 0 ? complaintData.photoUris[0] : null,
+        });
+      } catch (err) {
+        console.warn('Supabase createConsultationWithChat error:', err);
+      }
+    }
+
+    return { consultation: newComplaint, consultationId: newId };
+  };
+
+  // Derive Doctor Inbox items from complaints and messages
+  const doctorInbox: DoctorInboxItem[] = complaints.map((comp) => {
+    const threadMessages = messages.filter((m) => m.consultationId === comp.id);
+    const lastMsg = threadMessages.length > 0 ? threadMessages[threadMessages.length - 1] : null;
+
+    return {
+      consultationId: comp.id,
+      patientId: comp.patientId,
+      patientName: comp.patientName || 'مريض',
+      patientPhone: comp.patientPhone || '',
+      lastMessage: lastMsg ? lastMsg.text : comp.description || 'طلب استشارة جديد',
+      lastMessageTime: lastMsg
+        ? new Date(lastMsg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        : new Date(comp.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      urgencyLevel: comp.urgencyLevel,
+      status: comp.status,
+      createdAt: comp.createdAt,
+      photoUrls: comp.photoUris || [],
+      description: comp.description || '',
+      symptoms: comp.symptoms || [],
+    };
+  });
+
   const sendMessage = async (
     consultationId: string,
     text: string,
@@ -730,8 +872,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setRole,
         currentUser,
         updateUserProfile,
+        savePatientQuickProfile,
         complaints,
         addComplaint,
+        createConsultationWithChat,
+        doctorInbox,
         submitDiagnosis,
         appointments,
         bookAppointment,

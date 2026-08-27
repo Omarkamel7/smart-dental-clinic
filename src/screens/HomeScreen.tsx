@@ -158,7 +158,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         {/* 1. Request Preliminary Diagnosis (Triage) */}
         <TouchableOpacity
           style={styles.primaryActionCard}
-          onPress={() => navigation.navigate('ComplaintIntake')}
+          onPress={() => navigation.navigate('NewConsultation')}
           activeOpacity={0.85}
         >
           <View style={styles.actionIconBubble}>

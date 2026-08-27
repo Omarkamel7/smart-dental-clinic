@@ -159,38 +159,15 @@ export const ProfileScreen: React.FC = () => {
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      {/* Role & Mode Switch Card */}
-      <View style={styles.roleCard}>
-        <View style={styles.roleHeader}>
-          <UserCheck size={20} color={Colors.secondary} />
-          <Text style={styles.roleTitle}>
-            {language === 'ar' ? 'نمط الواجهة الحالي:' : 'Current Role:'}
-          </Text>
-          <Text style={styles.roleBadge}>
-            {role === 'patient' ? t?.patientRole ?? 'مريض' : t?.doctorRole ?? 'طبيب'}
-          </Text>
-        </View>
-
-        <TouchableOpacity
-          style={styles.switchRoleBtn}
-          onPress={() => setRole(role === 'patient' ? 'doctor' : 'patient')}
-        >
-          <Text style={styles.switchRoleBtnText}>
-            {role === 'patient'
-              ? (t?.switchToDoctor ?? 'التبديل إلى واجهة الطبيب')
-              : (t?.switchToPatient ?? 'التبديل إلى واجهة المريض')}
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Doctor Management Options (Only shown for Doctors) */}
+      {/* Doctor Management Options (Only shown when logged in as Doctor) */}
       {role === 'doctor' && (
-        <View style={styles.card}>
-          <View style={styles.cardHeader}>
-            <Shield size={18} color={Colors.primary} />
-            <Text style={styles.cardTitle}>
-              {language === 'ar' ? 'أدوات إدارة العيادة والمحتوى' : 'Clinic Management Tools'}
+        <View style={styles.roleCard}>
+          <View style={styles.roleHeader}>
+            <Shield size={20} color={Colors.primaryDark} />
+            <Text style={styles.roleTitle}>
+              {language === 'ar' ? 'حساب الطبيب المعتمد:' : 'Doctor Account:'}
             </Text>
+            <Text style={styles.roleBadge}>د. كريم أبو بكر</Text>
           </View>
 
           <TouchableOpacity
@@ -217,6 +194,21 @@ export const ProfileScreen: React.FC = () => {
           >
             <Text style={styles.doctorToolBtnText}>
               {language === 'ar' ? '🖼️ إدارة معرض الأعمال (قبل/بعد)' : '🖼️ Manage Portfolio (Before/After)'}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.doctorToolBtn, { backgroundColor: '#fee2e2', borderColor: '#fca5a5', marginTop: 6 }]}
+            onPress={() => {
+              setRole('patient');
+              Alert.alert(
+                language === 'ar' ? 'تم تسجيل الخروج' : 'Signed Out',
+                language === 'ar' ? 'تمت العودة إلى واجهة المستخدم العادية.' : 'Returned to patient view.'
+              );
+            }}
+          >
+            <Text style={[styles.doctorToolBtnText, { color: Colors.emergency }]}>
+              {language === 'ar' ? '🚪 تسجيل الخروج من حساب الطبيب' : '🚪 Sign Out of Doctor Account'}
             </Text>
           </TouchableOpacity>
         </View>
@@ -437,16 +429,18 @@ export const ProfileScreen: React.FC = () => {
         </View>
       </View>
 
-      {/* Account / Cloud Auth Action */}
-      <TouchableOpacity
-        style={styles.authActionBtn}
-        onPress={handleNavigateAuth}
-      >
-        <LogOut size={18} color={Colors.emergency} />
-        <Text style={styles.authActionBtnText}>
-          {language === 'ar' ? 'تبديل الحساب / تسجيل الدخول (Supabase Auth)' : 'Switch Account / Sign In'}
-        </Text>
-      </TouchableOpacity>
+      {/* Discreet Doctor / Admin Portal Login */}
+      {role === 'patient' && (
+        <TouchableOpacity
+          style={styles.doctorPortalBtn}
+          onPress={handleNavigateAuth}
+        >
+          <Shield size={16} color={Colors.primary} />
+          <Text style={styles.doctorPortalBtnText}>
+            {language === 'ar' ? '🔐 تسجيل دخول الطبيب والإدارة (Doctor Login)' : '🔐 Doctor & Admin Login'}
+          </Text>
+        </TouchableOpacity>
+      )}
 
       <View style={{ height: 40 }} />
     </ScrollView>
@@ -673,6 +667,24 @@ const styles = StyleSheet.create({
   },
   doctorToolBtnText: {
     fontSize: 13,
+    fontWeight: '800',
+    color: Colors.primaryDark,
+  },
+  doctorPortalBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#f0f9ff',
+    borderWidth: 1.5,
+    borderColor: Colors.primaryLight,
+    borderRadius: 14,
+    paddingVertical: 13,
+    gap: 8,
+    marginTop: 6,
+    ...Shadows.sm,
+  },
+  doctorPortalBtnText: {
+    fontSize: 12,
     fontWeight: '800',
     color: Colors.primaryDark,
   },

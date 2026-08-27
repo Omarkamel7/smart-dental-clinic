@@ -30,7 +30,7 @@ interface DoctorDashboardScreenProps {
 export const DoctorDashboardScreen: React.FC<DoctorDashboardScreenProps> = ({
   navigation,
 }) => {
-  const { t, language, complaints, appointments, isRTL } = useApp();
+  const { t, language, complaints, appointments, doctorInbox, isRTL } = useApp();
 
   const pendingComplaints = complaints.filter((c) => c.status === 'pending');
   const diagnosedComplaints = complaints.filter(
@@ -152,7 +152,69 @@ export const DoctorDashboardScreen: React.FC<DoctorDashboardScreenProps> = ({
         </View>
       </View>
 
-      {/* Section 1: Pending Complaints Requiring Diagnosis */}
+      {/* Section 1: Live Patient Consultations & Chat Inbox */}
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionTitle}>
+          {language === 'ar' ? '💬 استشارات ومحادثات المرضى الواردة:' : '💬 Patient Chat Inbox:'}
+        </Text>
+      </View>
+
+      {doctorInbox.length === 0 ? (
+        <View style={styles.emptyBox}>
+          <CheckCircle size={36} color={Colors.routine} />
+          <Text style={styles.emptyText}>
+            {language === 'ar' ? 'لا توجد استشارات واردة حتى الآن' : 'No incoming consultations yet'}
+          </Text>
+        </View>
+      ) : (
+        doctorInbox.map((inboxItem) => (
+          <View key={inboxItem.consultationId} style={styles.inboxCard}>
+            <View style={styles.inboxHeader}>
+              <View style={styles.inboxAvatar}>
+                <Text style={styles.inboxAvatarText}>{inboxItem.patientName.charAt(0) || 'م'}</Text>
+              </View>
+              <View style={styles.inboxInfo}>
+                <Text style={styles.inboxName}>{inboxItem.patientName}</Text>
+                <Text style={styles.inboxPhone}>{inboxItem.patientPhone}</Text>
+              </View>
+              <View style={styles.inboxTimeBadge}>
+                <Text style={styles.inboxTimeText}>{inboxItem.lastMessageTime}</Text>
+              </View>
+            </View>
+
+            <Text style={styles.inboxSnippet} numberOfLines={2}>
+              💬 {inboxItem.lastMessage}
+            </Text>
+
+            <View style={styles.inboxActionsRow}>
+              <TouchableOpacity
+                style={styles.openChatBtn}
+                onPress={() => navigation.navigate('Chat', { consultationId: inboxItem.consultationId })}
+              >
+                <MessageCircle size={16} color={Colors.white} />
+                <Text style={styles.openChatBtnText}>
+                  {language === 'ar' ? 'فتح المحادثة والرد' : 'Open Chat & Reply'}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.openTriageBtn}
+                onPress={() =>
+                  navigation.navigate('DoctorConsultationDetail', {
+                    complaintId: inboxItem.consultationId,
+                  })
+                }
+              >
+                <Stethoscope size={16} color={Colors.primary} />
+                <Text style={styles.openTriageBtnText}>
+                  {language === 'ar' ? 'تقرير الحالة' : 'Case Report'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        ))
+      )}
+
+      {/* Section 2: Incoming Diagnosis Cases */}
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>{t.incomingComplaints}</Text>
       </View>
@@ -546,5 +608,102 @@ const styles = StyleSheet.create({
     color: Colors.textMuted,
     textAlign: 'center',
     lineHeight: 12,
+  },
+  inboxCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: 16,
+    padding: 14,
+    borderWidth: 1.5,
+    borderColor: '#e2e8f0',
+    marginBottom: 10,
+    ...Shadows.sm,
+  },
+  inboxHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 8,
+  },
+  inboxAvatar: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: Colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  inboxAvatarText: {
+    fontSize: 14,
+    fontWeight: '900',
+    color: Colors.white,
+  },
+  inboxInfo: {
+    flex: 1,
+  },
+  inboxName: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: Colors.textPrimary,
+  },
+  inboxPhone: {
+    fontSize: 10,
+    color: Colors.textSecondary,
+    marginTop: 1,
+  },
+  inboxTimeBadge: {
+    backgroundColor: '#f1f5f9',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+  },
+  inboxTimeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: Colors.textMuted,
+  },
+  inboxSnippet: {
+    fontSize: 12,
+    color: Colors.textSecondary,
+    lineHeight: 18,
+    backgroundColor: '#f8fafc',
+    padding: 8,
+    borderRadius: 8,
+    marginBottom: 10,
+  },
+  inboxActionsRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  openChatBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: Colors.primary,
+    paddingVertical: 9,
+    borderRadius: 10,
+  },
+  openChatBtnText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: Colors.white,
+  },
+  openTriageBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: '#f0fdf4',
+    borderWidth: 1,
+    borderColor: '#86efac',
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+    borderRadius: 10,
+  },
+  openTriageBtnText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#166534',
   },
 });

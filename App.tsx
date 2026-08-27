@@ -27,6 +27,7 @@ import { DoctorDashboardScreen } from './src/screens/DoctorDashboardScreen';
 import { DoctorConsultationDetailScreen } from './src/screens/DoctorConsultationDetailScreen';
 import { ChatScreen } from './src/screens/ChatScreen';
 import { AuthScreen } from './src/screens/AuthScreen';
+import { NewConsultationScreen } from './src/screens/NewConsultationScreen';
 import { EditClinicScreen } from './src/screens/doctor/EditClinicScreen';
 import { ManageServicesScreen } from './src/screens/doctor/ManageServicesScreen';
 import { ManagePortfolioScreen } from './src/screens/doctor/ManagePortfolioScreen';
@@ -259,6 +260,14 @@ const MainNavigation = () => {
               language === 'ar'
                 ? 'المحادثة الطبية المباشرة'
                 : 'Medical Consultation Chat',
+          }}
+        />
+
+        <Stack.Screen
+          name="NewConsultation"
+          component={NewConsultationScreen}
+          options={{
+            title: language === 'ar' ? 'طلب استشارة وفحص طبي' : 'Medical Consultation',
           }}
         />
 
