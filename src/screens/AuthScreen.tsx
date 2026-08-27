@@ -215,8 +215,9 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ navigation }) => {
         {/* Clinic Branding Header */}
         <View style={styles.brandingHeader}>
           <Image
-            source={require('../../assets/doctor_clinic.jpg')}
+            source={require('../../assets/app_logo.png')}
             style={styles.logoAvatar}
+            resizeMode="contain"
           />
           <Text style={styles.appTitle}>{t.appTitle}</Text>
           <Text style={styles.tagline}>{t.tagline}</Text>
@@ -402,12 +403,10 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   logoAvatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    borderWidth: 3,
-    borderColor: Colors.primary,
-    marginBottom: 10,
+    width: 96,
+    height: 96,
+    borderRadius: 22,
+    marginBottom: 12,
     ...Shadows.md,
   },
   appTitle: {
