@@ -1,0 +1,1416 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>عيادة د. كريم أبو بكر للأسنان - المحادثة الطبية ومجسم الفك</title>
+  <style>
+    /* 100% Pure Embedded CSS - Zero External Dependencies */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "Cairo", Arial, sans-serif;
+    }
+
+    body {
+      background-color: #070d1e;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 16px;
+      color: #0f172a;
+    }
+
+    /* Mobile Shell Frame */
+    .phone-container {
+      width: 100%;
+      max-width: 450px;
+      height: 920px;
+      background: #f8fafc;
+      border-radius: 46px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.75), 0 0 0 10px #1e293b, 0 0 0 12px #334155;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Top Status Bar */
+    .status-bar {
+      background: #0284c7;
+      color: white;
+      padding: 12px 24px 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      font-weight: 700;
+      z-index: 40;
+    }
+
+    /* App Header */
+    .app-header {
+      background: #ffffff;
+      padding: 12px 16px;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 30;
+    }
+
+    .header-branding {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .header-logo {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #0284c7, #0369a1);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      font-size: 20px;
+      box-shadow: 0 4px 6px -1px rgba(2, 132, 199, 0.3);
+    }
+
+    .header-title {
+      font-size: 14px;
+      font-weight: 900;
+      color: #0f172a;
+      line-height: 1.2;
+    }
+
+    .header-subtitle {
+      font-size: 11px;
+      color: #64748b;
+      font-weight: 600;
+    }
+
+    .btn-toggle {
+      border: 1px solid #cbd5e1;
+      background: #f1f5f9;
+      padding: 6px 12px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.2s;
+    }
+
+    .btn-lang { background: #e0f2fe; border-color: #0284c7; color: #0369a1; }
+    .btn-role { background: #ccfbf1; border-color: #0d9488; color: #0f766e; }
+
+    .btn-toggle:hover {
+      opacity: 0.85;
+      transform: translateY(-1px);
+    }
+
+    /* Screen Content */
+    .screen-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      padding-bottom: 90px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .screen-content::-webkit-scrollbar {
+      display: none;
+    }
+
+    /* Cards */
+    .card {
+      background: #ffffff;
+      border-radius: 20px;
+      padding: 16px;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+
+    /* ANATOMICAL DENTAL JAW CARD */
+    .jaw-container-card {
+      background: #ffffff;
+      border-radius: 24px;
+      padding: 14px;
+      border: 1.5px solid #cbd5e1;
+      box-shadow: 0 10px 15px -3px rgba(0,0,0,0.06);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+
+    .jaw-switch-tabs {
+      display: flex;
+      width: 100%;
+      background: #f1f5f9;
+      border-radius: 14px;
+      padding: 4px;
+      gap: 4px;
+      margin-bottom: 10px;
+    }
+
+    .jaw-tab {
+      flex: 1;
+      padding: 9px 6px;
+      border-radius: 10px;
+      border: none;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+      background: transparent;
+      color: #64748b;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .jaw-tab.active {
+      background: #ffffff;
+      color: #0284c7;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    }
+
+    .jaw-direction-header {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      font-weight: 800;
+      color: #0284c7;
+      margin-bottom: 4px;
+      padding: 0 12px;
+    }
+
+    /* SVG Tooth Interactivity */
+    .svg-jaw-stage {
+      width: 100%;
+      max-width: 370px;
+      height: 345px;
+      filter: drop-shadow(0 6px 12px rgba(0,0,0,0.08));
+    }
+
+    .svg-tooth-group {
+      cursor: pointer;
+      transition: transform 0.15s ease-out;
+    }
+
+    .svg-tooth-group:hover {
+      filter: drop-shadow(0 0 8px rgba(2, 132, 199, 0.9));
+    }
+
+    .svg-tooth-group.selected .tooth-shape {
+      fill: url(#selectedGrad) !important;
+      stroke: #0284c7 !important;
+      stroke-width: 2.5px !important;
+      filter: drop-shadow(0 4px 8px rgba(2, 132, 199, 0.5));
+    }
+
+    .svg-tooth-group.selected text {
+      fill: #ffffff !important;
+      font-weight: 900 !important;
+    }
+
+    .svg-tooth-group.selected .fissure-line {
+      stroke: rgba(255, 255, 255, 0.8) !important;
+    }
+
+    /* Selected Tooth Detailed Inspector */
+    .tooth-inspector-box {
+      width: 100%;
+      background: linear-gradient(135deg, #e0f2fe 0%, #ffffff 100%);
+      border: 2px solid #0284c7;
+      border-radius: 16px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 10px;
+      box-shadow: 0 4px 10px rgba(2, 132, 199, 0.12);
+    }
+
+    .inspector-badge-num {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      background: #0284c7;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 900;
+      box-shadow: 0 4px 6px rgba(2, 132, 199, 0.3);
+    }
+
+    .inspector-badge-sub {
+      font-size: 8px;
+      opacity: 0.85;
+      font-weight: 700;
+    }
+
+    .inspector-details h4 {
+      font-size: 13px;
+      font-weight: 900;
+      color: #0369a1;
+    }
+
+    .inspector-details p {
+      font-size: 11px;
+      color: #475569;
+      font-weight: 600;
+      margin-top: 2px;
+    }
+
+    /* Symptoms */
+    .symptom-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #f8fafc;
+      border: 1.5px solid #e2e8f0;
+      padding: 10px 12px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      transition: all 0.15s;
+    }
+
+    .symptom-item.active {
+      background: #e0f2fe;
+      border-color: #0284c7;
+      color: #0369a1;
+    }
+
+    .checkbox-circle {
+      width: 20px;
+      height: 20px;
+      border-radius: 10px;
+      border: 2px solid #cbd5e1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+    }
+
+    .symptom-item.active .checkbox-circle {
+      background: #0284c7;
+      border-color: #0284c7;
+      color: white;
+    }
+
+    /* Textarea & Inputs */
+    .textarea-box {
+      width: 100%;
+      min-height: 90px;
+      background: #f8fafc;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 14px;
+      padding: 12px;
+      font-size: 13px;
+      color: #0f172a;
+      outline: none;
+      resize: none;
+      margin-top: 6px;
+      line-height: 1.5;
+    }
+
+    .textarea-box:focus {
+      border-color: #0284c7;
+      background: #ffffff;
+      box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+    }
+
+    .btn-submit {
+      background: linear-gradient(135deg, #0284c7, #0369a1);
+      color: white;
+      border: none;
+      padding: 14px;
+      border-radius: 16px;
+      font-size: 14px;
+      font-weight: 800;
+      width: 100%;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(2, 132, 199, 0.35);
+      margin-top: 6px;
+    }
+
+    .btn-submit:hover {
+      opacity: 0.95;
+    }
+
+    /* CHAT SCREEN STYLES */
+    .chat-container {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      gap: 10px;
+    }
+
+    .chat-header-bar {
+      background: #ffffff;
+      padding: 12px 14px;
+      border-radius: 16px;
+      border: 1px solid #e2e8f0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    }
+
+    .chat-partner-title {
+      font-size: 13px;
+      font-weight: 800;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .online-indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 4px;
+      background: #10b981;
+    }
+
+    .chat-bubble-row {
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      margin: 4px 0;
+    }
+
+    .chat-bubble-row.me {
+      justify-content: flex-end;
+    }
+
+    .chat-bubble-row.other {
+      justify-content: flex-start;
+    }
+
+    .chat-bubble {
+      max-width: 80%;
+      padding: 10px 14px;
+      border-radius: 18px;
+      font-size: 13px;
+      line-height: 1.4;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .chat-bubble.me {
+      background: #0284c7;
+      color: #ffffff;
+      border-bottom-right-radius: 3px;
+    }
+
+    .chat-bubble.other {
+      background: #ffffff;
+      color: #0f172a;
+      border: 1px solid #e2e8f0;
+      border-bottom-left-radius: 3px;
+    }
+
+    .chat-meta {
+      font-size: 9px;
+      margin-top: 4px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 4px;
+      opacity: 0.8;
+    }
+
+    .chat-input-bar {
+      position: absolute;
+      bottom: 70px;
+      left: 12px;
+      right: 12px;
+      background: #ffffff;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 24px;
+      padding: 6px 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      z-index: 50;
+    }
+
+    .chat-input-field {
+      flex: 1;
+      border: none;
+      outline: none;
+      font-size: 13px;
+      padding: 6px 8px;
+    }
+
+    .chat-action-icon-btn {
+      background: #f1f5f9;
+      border: none;
+      width: 34px;
+      height: 34px;
+      border-radius: 17px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    .chat-send-btn {
+      background: #0284c7;
+      color: white;
+      border: none;
+      width: 36px;
+      height: 36px;
+      border-radius: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    /* Bottom Nav */
+    .bottom-nav {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 64px;
+      background: #ffffff;
+      border-top: 1px solid #e2e8f0;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 6px 10px;
+      z-index: 40;
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      background: none;
+      border: none;
+      color: #94a3b8;
+      cursor: pointer;
+      font-size: 10px;
+      font-weight: 700;
+      transition: all 0.15s;
+    }
+
+    .nav-item.active {
+      color: #0284c7;
+      transform: translateY(-2px);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    .badge-urgent { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
+    .badge-done { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
+    .badge-pending { background: #fef9c3; color: #854d0e; border: 1px solid #fde047; }
+  </style>
+</head>
+<body>
+
+  <!-- Mobile Shell Frame -->
+  <div class="phone-container">
+    
+    <!-- Status Bar -->
+    <div class="status-bar">
+      <span>9:41 AM</span>
+      <span>📶 5G 🔋 100%</span>
+    </div>
+
+    <!-- App Header with Lang & Role Buttons -->
+    <header class="app-header">
+      <div class="header-branding">
+        <div class="header-logo">🦷</div>
+        <div>
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <h1 id="txt-header-title" class="header-title">عيادة د. كريم أبو بكر</h1>
+            <span style="background: #ecfdf5; color: #059669; font-size: 8px; font-weight: 800; padding: 2px 6px; border-radius: 4px; border: 1px solid #a7f3d0;">⚡ Supabase Ready</span>
+          </div>
+          <p id="txt-header-sub" class="header-subtitle">طب وجراحة وتجميل وزراعة الأسنان</p>
+        </div>
+      </div>
+      <div style="display: flex; gap: 6px;">
+        <button onclick="toggleLang()" id="btn-lang" class="btn-toggle btn-lang">🌐 English</button>
+        <button onclick="toggleRole()" id="btn-role" class="btn-toggle btn-role">👨‍⚕️ الطبيب</button>
+      </div>
+    </header>
+
+    <!-- Scrollable Screen Body -->
+    <main id="app-screen" class="screen-content">
+      <!-- Injected by JavaScript -->
+    </main>
+
+    <!-- Patient Bottom Nav -->
+    <nav id="patient-nav" class="bottom-nav">
+      <button onclick="navigate('home')" id="nav-home" class="nav-item">
+        <span style="font-size: 18px;">🏠</span>
+        <span id="txt-nav-home">الرئيسية</span>
+      </button>
+      <button onclick="navigate('triage')" id="nav-triage" class="nav-item active">
+        <span style="font-size: 18px;">🦷</span>
+        <span id="txt-nav-triage">مجسم الفك</span>
+      </button>
+      <button onclick="navigate('appointments')" id="nav-appointments" class="nav-item">
+        <span style="font-size: 18px;">📅</span>
+        <span id="txt-nav-apt">حجز موعد</span>
+      </button>
+      <button onclick="navigate('records')" id="nav-records" class="nav-item">
+        <span style="font-size: 18px;">📋</span>
+        <span id="txt-nav-rec">سجلي الطبي</span>
+      </button>
+      <button onclick="navigate('chat')" id="nav-chat" class="nav-item">
+        <span style="font-size: 18px;">💬</span>
+        <span id="txt-nav-chat">المحادثة</span>
+      </button>
+    </nav>
+
+    <!-- Doctor Bottom Nav -->
+    <nav id="doctor-nav" class="bottom-nav" style="display: none;">
+      <button onclick="navigate('doctor_dashboard')" id="nav-doc-dash" class="nav-item active">
+        <span style="font-size: 18px;">📊</span>
+        <span id="txt-nav-doc-dash">لوحة الحالات</span>
+      </button>
+      <button onclick="navigate('appointments')" id="nav-doc-sched" class="nav-item">
+        <span style="font-size: 18px;">📅</span>
+        <span id="txt-nav-doc-sched">جدول العيادة</span>
+      </button>
+      <button onclick="navigate('chat')" id="nav-doc-chat" class="nav-item">
+        <span style="font-size: 18px;">💬</span>
+        <span id="txt-nav-doc-chat">محادثة المرضى</span>
+      </button>
+      <button onclick="toggleRole()" class="nav-item">
+        <span style="font-size: 18px;">👤</span>
+        <span id="txt-nav-switch-pat">واجهة المريض</span>
+      </button>
+    </nav>
+
+  </div>
+
+  <script>
+    // Bilingual Dictionary
+    const DICTIONARY = {
+      ar: {
+        appTitle: 'عيادة د. كريم أبو بكر',
+        appSub: 'طب وجراحة وتجميل وزراعة الأسنان',
+        btnLang: '🌐 English',
+        btnRoleDoctor: '👨‍⚕️ لوحة الطبيب',
+        btnRolePatient: '👤 واجهة المريض',
+        navHome: 'الرئيسية',
+        navTriage: 'مجسم الفك',
+        navAppointments: 'حجز موعد',
+        navRecords: 'سجلي الطبي',
+        navChat: 'المحادثة الطبية',
+        navDoctorCases: 'لوحة الحالات',
+        navDoctorSchedule: 'جدول العيادة',
+        navDoctorChat: 'محادثة المرضى',
+        
+        triageTitle: '🦷 مجسم الفك الطبي التفاعلي',
+        triageSub: 'اضغط على السن المصاب في مجسم الفك الحقيقي لتحديده لطبيبك:',
+        jawUpper: 'الفك العلوي (Upper Jaw)',
+        jawLower: 'الفك السفلي (Lower Jaw)',
+        rightSide: '👉 يمين المريض (Right)',
+        leftSide: 'يسار المريض (Left) 👈',
+        
+        inspectorTitle: 'السن المحدد في المجسم:',
+        inspectorSub: 'سيتم إرسال هذا السن المحدد بدقة لدكتور كريم مع تفاصيل حالتك.',
+        symptomsHeader: 'ما هي الأعراض التي تشعر بها في هذا السن؟',
+        painHeader: 'مقياس شدة الألم (1 إلى 10):',
+        painMild: 'ألم خفيف (1-3)',
+        painMid: 'ألم متوسط (4-6)',
+        painHigh: 'ألم حاد وشديد (7-10)',
+        
+        descHeader: 'وصف تفصيلي للشكوى:',
+        descPlaceholder: 'اكتب هنا متى بدأ الألم، وهل يزداد مع المشروبات الباردة أو الساخنة أو ليلاً...',
+        submitComplaint: '📤 إرسال الشكوى ومجسم الأسنان للطبيب',
+        
+        doctorDashTitle: '👨‍⚕️ لوحة تحكم د. كريم أبو بكر',
+        doctorDashSub: 'فحص مجسم الأسنان والشكاوى الواردة وإصدار التقارير المبدئية',
+        needDiagnosis: 'بحاجة لتشخيص',
+        diagnosedCount: 'تم تشخيصها',
+        todayApts: 'مواعيد اليوم',
+        incomingCases: 'الشكاوى الواردة من المرضى:',
+        affectedTooth: 'السن المصاب على المجسم:',
+        painLevel: 'شدة الألم:',
+        writeDiagnosis: 'كتابة التشخيص المبدئي:',
+        provisionalCondPlaceholder: 'التشخيص المتوقع (مثلاً: التهاب عصب حاد في السن #16)',
+        instructionsPlaceholder: 'تعليمات التسكين والإسعافات الأولية للمريض',
+        sendDiagnosisBtn: 'إرسال التقرير للمريض الآن',
+
+        chatTitle: 'المحادثة والاستشارة الطبية المباشرة',
+        chatSub: 'تواصل مباشر مع د. كريم بشأن حالتك وتشخيصك',
+        chatPlaceholder: 'اكتب استفسارك أو ردك هنا...',
+        chatWithDoctor: 'محادثة الطبيب بشأن الحالة',
+        chatWithPatient: 'محادثة المريض'
+      },
+      en: {
+        appTitle: 'Dr. Karim Abo Bakr Clinic',
+        appSub: 'Dentistry, Surgery, Cosmetic & Implants',
+        btnLang: '🌐 عربي',
+        btnRoleDoctor: '👨‍⚕️ Doctor View',
+        btnRolePatient: '👤 Patient View',
+        navHome: 'Home',
+        navTriage: 'Jaw Model',
+        navAppointments: 'Appointments',
+        navRecords: 'My Records',
+        navChat: 'Medical Chat',
+        navDoctorCases: 'Cases Board',
+        navDoctorSchedule: 'Clinic Schedule',
+        navDoctorChat: 'Patient Chat',
+        
+        triageTitle: '🦷 Anatomical Dental Jaw Model',
+        triageSub: 'Tap on your affected tooth on the anatomical jaw model below to pinpoint it:',
+        jawUpper: 'Upper Jaw (Maxilla)',
+        jawLower: 'Lower Jaw (Mandible)',
+        rightSide: '👉 Patient Right',
+        leftSide: 'Patient Left 👈',
+        
+        inspectorTitle: 'Selected Tooth on Model:',
+        inspectorSub: 'This precise tooth is pinned and will be sent to Dr. Karim with your report.',
+        symptomsHeader: 'What symptoms are you feeling in this tooth?',
+        painHeader: 'Pain Severity Scale (1 to 10):',
+        painMild: 'Mild (1-3)',
+        painMid: 'Moderate (4-6)',
+        painHigh: 'Severe Pain (7-10)',
+        
+        descHeader: 'Detailed Complaint Description:',
+        descPlaceholder: 'Describe when the pain started, triggers, sensitivity to cold/hot, night pain...',
+        submitComplaint: '📤 Send Complaint & Dental Model to Doctor',
+        
+        doctorDashTitle: '👨‍⚕️ Dr. Karim Abo Bakr Console',
+        doctorDashSub: 'Inspect dental models, triage patient complaints & issue preliminary reports',
+        needDiagnosis: 'Awaiting Diagnosis',
+        diagnosedCount: 'Diagnosed',
+        todayApts: "Today's Schedule",
+        incomingCases: 'Incoming Patient Cases:',
+        affectedTooth: 'Affected Tooth on Model:',
+        painLevel: 'Pain Level:',
+        writeDiagnosis: 'Compose Preliminary Diagnosis:',
+        provisionalCondPlaceholder: 'Provisional Diagnosis (e.g. Acute Irreversible Pulpitis #16)',
+        instructionsPlaceholder: 'First-aid & Pain Relief Guidance for patient',
+        sendDiagnosisBtn: 'Send Diagnosis Report to Patient Now',
+
+        chatTitle: 'Direct Medical Consultation Chat',
+        chatSub: 'Direct messaging with Dr. Karim regarding your dental case',
+        chatPlaceholder: 'Type your message or question here...',
+        chatWithDoctor: 'Chat with Doctor',
+        chatWithPatient: 'Chat with Patient'
+      }
+    };
+
+    // State
+    let state = {
+      lang: 'ar',
+      role: 'patient',
+      tab: 'triage',
+      activeJaw: 'upper', // 'upper' | 'lower'
+      selectedTeeth: [16],
+      selectedSymptoms: ['throbbing_pain', 'cold_sensitivity'],
+      painLevel: 8,
+      complaintText: '',
+      chatInput: '',
+      messages: [
+        {
+          id: 'msg_01',
+          senderRole: 'doctor',
+          senderName: 'د. كريم أبو بكر',
+          text: 'أهلاً بك يا أستاذ أحمد. اطلعت على صورة السن ووصف الألم، الحالة تشير لالتهاب عصب بالضرس 16. وضعت لك تعليمات التسكين وحجزنا موعد عاجل بالعيادة.',
+          time: '10:15 AM'
+        },
+        {
+          id: 'msg_02',
+          senderRole: 'patient',
+          senderName: 'أحمد محمود',
+          text: 'شكراً جداً يا دكتور، هل أقدر آخذ مسكن بروفين 400 قبل ميعاد الجلسة؟',
+          time: '10:20 AM'
+        },
+        {
+          id: 'msg_03',
+          senderRole: 'doctor',
+          senderName: 'د. كريم أبو بكر',
+          text: 'نعم بالتأكيد، مسكن بروفين 400 مناسب تماماً بعد الأكل حتى موعد الكشف بالعيادة.',
+          time: '10:22 AM'
+        }
+      ],
+      complaints: [
+        {
+          id: 'comp_01',
+          patientName: 'أحمد محمود سليمان',
+          patientPhone: '+20 111 234 5678',
+          teeth: [16],
+          symptoms: ['ألم نابض ومستمر', 'حساسية شديدة مع المشروبات الباردة'],
+          pain: 8,
+          desc: 'ألم حاد ومفاجئ في الضرس العلوي الأيمن، يزداد جداً مع الماء البارد ويصحيني من النوم.',
+          status: 'diagnosed',
+          urgency: 'urgent',
+          diagnosis: {
+            condition: 'التهاب عصب حاد في الضرس الأول العلوي الأيمن (Acute Pulpitis)',
+            firstAid: 'تجنب المشروبات الباردة والساخنة تماماً، والمضغ على الجانب الأيسر. يوصى بأخذ كيتولاك أو بروفين 400 بعد الأكل لتسكين الألم مؤقتاً.',
+            meds: 'بروفين 400 ملجم بعد الوجبات عند اللزوم'
+          }
+        }
+      ],
+      appointments: [
+        {
+          id: 'apt_01',
+          service: 'علاج وجذور وأعصاب (علاج عصب)',
+          date: '2026-08-28',
+          time: '06:00 - 06:45 PM',
+          status: 'مؤكد بالعيادة'
+        }
+      ]
+    };
+
+    // Anatomical Tooth Database
+    const TEETH_DATA = {
+      18: { ar: 'ضرس العقل العلوي الأيمن', en: 'Upper Right Wisdom Molar (#18)', type: 'molar' },
+      17: { ar: 'الضرس الثاني العلوي الأيمن', en: 'Upper Right 2nd Molar (#17)', type: 'molar' },
+      16: { ar: 'الضرس الأول العلوي الأيمن', en: 'Upper Right 1st Molar (#16)', type: 'molar' },
+      15: { ar: 'الضاحك الثاني العلوي الأيمن', en: 'Upper Right 2nd Premolar (#15)', type: 'premolar' },
+      14: { ar: 'الضاحك الأول العلوي الأيمن', en: 'Upper Right 1st Premolar (#14)', type: 'premolar' },
+      13: { ar: 'الناب العلوي الأيمن', en: 'Upper Right Canine (#13)', type: 'canine' },
+      12: { ar: 'القاطع الجانبي العلوي الأيمن', en: 'Upper Right Lateral Incisor (#12)', type: 'incisor' },
+      11: { ar: 'القاطع المركزي العلوي الأيمن', en: 'Upper Right Central Incisor (#11)', type: 'incisor' },
+
+      21: { ar: 'القاطع المركزي العلوي الأيسر', en: 'Upper Left Central Incisor (#21)', type: 'incisor' },
+      22: { ar: 'القاطع الجانبي العلوي الأيسر', en: 'Upper Left Lateral Incisor (#22)', type: 'incisor' },
+      23: { ar: 'الناب العلوي الأيسر', en: 'Upper Left Canine (#23)', type: 'canine' },
+      24: { ar: 'الضاحك الأول العلوي الأيسر', en: 'Upper Left 1st Premolar (#24)', type: 'premolar' },
+      25: { ar: 'الضاحك الثاني العلوي الأيسر', en: 'Upper Left 2nd Premolar (#25)', type: 'premolar' },
+      26: { ar: 'الضرس الأول العلوي الأيسر', en: 'Upper Left 1st Molar (#26)', type: 'molar' },
+      27: { ar: 'الضرس الثاني العلوي الأيسر', en: 'Upper Left 2nd Molar (#27)', type: 'molar' },
+      28: { ar: 'ضرس العقل العلوي الأيسر', en: 'Upper Left Wisdom Molar (#28)', type: 'molar' },
+
+      48: { ar: 'ضرس العقل السفلي الأيمن', en: 'Lower Right Wisdom Molar (#48)', type: 'molar' },
+      47: { ar: 'الضرس الثاني السفلي الأيمن', en: 'Lower Right 2nd Molar (#47)', type: 'molar' },
+      46: { ar: 'الضرس الأول السفلي الأيمن', en: 'Lower Right 1st Molar (#46)', type: 'molar' },
+      45: { ar: 'الضاحك الثاني السفلي الأيمن', en: 'Lower Right 2nd Premolar (#45)', type: 'premolar' },
+      44: { ar: 'الضاحك الأول السفلي الأيمن', en: 'Lower Right 1st Premolar (#44)', type: 'premolar' },
+      43: { ar: 'الناب السفلي الأيمن', en: 'Lower Right Canine (#43)', type: 'canine' },
+      42: { ar: 'القاطع الجانبي السفلي الأيمن', en: 'Lower Right Lateral Incisor (#42)', type: 'incisor' },
+      41: { ar: 'القاطع المركزي السفلي الأيمن', en: 'Lower Right Central Incisor (#41)', type: 'incisor' },
+
+      31: { ar: 'القاطع المركزي السفلي الأيسر', en: 'Lower Left Central Incisor (#31)', type: 'incisor' },
+      32: { ar: 'القاطع الجانبي السفلي الأيسر', en: 'Lower Left Lateral Incisor (#32)', type: 'incisor' },
+      33: { ar: 'الناب السفلي الأيسر', en: 'Lower Left Canine (#33)', type: 'canine' },
+      34: { ar: 'الضاحك الأول السفلي الأيسر', en: 'Lower Left 1st Premolar (#34)', type: 'premolar' },
+      35: { ar: 'الضاحك الثاني السفلي الأيسر', en: 'Lower Left 2nd Premolar (#35)', type: 'premolar' },
+      36: { ar: 'الضرس الأول السفلي الأيسر', en: 'Lower Left 1st Molar (#36)', type: 'molar' },
+      37: { ar: 'الضرس الثاني السفلي الأيسر', en: 'Lower Left 2nd Molar (#37)', type: 'molar' },
+      38: { ar: 'ضرس العقل السفلي الأيسر', en: 'Lower Left Wisdom Molar (#38)', type: 'molar' }
+    };
+
+    const SYMPTOMS = [
+      { id: 'throbbing_pain', ar: 'ألم نابض ومستمر', en: 'Continuous Throbbing Pain' },
+      { id: 'cold_sensitivity', ar: 'حساسية شديدة مع المشروبات الباردة', en: 'Extreme Sensitivity to Cold' },
+      { id: 'hot_sensitivity', ar: 'ألم عند تناول أطعمة ومشروبات ساخنة', en: 'Sensitivity to Hot Food/Drinks' },
+      { id: 'gum_swelling', ar: 'تورم أو انتفاخ في اللثة / الخد', en: 'Gum or Facial Swelling' },
+      { id: 'broken_tooth', ar: 'كسر أو شرخ في السن / الحشوة', en: 'Broken / Cracked Tooth or Filling' },
+    ];
+
+    function toggleLang() {
+      state.lang = state.lang === 'ar' ? 'en' : 'ar';
+      document.documentElement.dir = state.lang === 'ar' ? 'rtl' : 'ltr';
+      document.documentElement.lang = state.lang;
+      render();
+    }
+
+    function toggleRole() {
+      state.role = state.role === 'patient' ? 'doctor' : 'patient';
+      document.getElementById('patient-nav').style.display = state.role === 'patient' ? 'flex' : 'none';
+      document.getElementById('doctor-nav').style.display = state.role === 'doctor' ? 'flex' : 'none';
+      state.tab = state.role === 'patient' ? 'triage' : 'doctor_dashboard';
+      render();
+    }
+
+    function navigate(tabName) {
+      state.tab = tabName;
+      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+      const activeBtn = document.getElementById(`nav-${tabName.replace('_', '-')}`) || document.getElementById(`nav-doc-${tabName.replace('doctor_', '')}`);
+      if (activeBtn) activeBtn.classList.add('active');
+      render();
+    }
+
+    function switchJaw(jaw) {
+      state.activeJaw = jaw;
+      render();
+    }
+
+    function toggleTooth(num) {
+      if (state.selectedTeeth.includes(num)) {
+        state.selectedTeeth = state.selectedTeeth.filter(t => t !== num);
+      } else {
+        state.selectedTeeth.push(num);
+      }
+      render();
+    }
+
+    function toggleSymptom(symId) {
+      if (state.selectedSymptoms.includes(symId)) {
+        state.selectedSymptoms = state.selectedSymptoms.filter(s => s !== symId);
+      } else {
+        state.selectedSymptoms.push(symId);
+      }
+      render();
+    }
+
+    function onDescriptionChange(text) {
+      state.complaintText = text;
+    }
+
+    function sendChatMessage() {
+      const text = (document.getElementById('chat-input-box')?.value || '').trim();
+      if (!text) return;
+      state.messages.push({
+        id: 'msg_' + Date.now(),
+        senderRole: state.role,
+        senderName: state.role === 'doctor' ? 'د. كريم أبو بكر' : 'أحمد محمود',
+        text: text,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      });
+      render();
+    }
+
+    function submitPatientComplaint() {
+      const desc = state.complaintText.trim() || (state.lang === 'ar' ? 'ألم مستمر يحتاج فحص' : 'Tooth pain needing triage');
+      state.complaints.unshift({
+        id: 'comp_' + Date.now(),
+        patientName: state.lang === 'ar' ? 'أحمد محمود سليمان' : 'Ahmed Mahmoud',
+        patientPhone: '+20 111 234 5678',
+        teeth: [...state.selectedTeeth],
+        symptoms: [...state.selectedSymptoms],
+        pain: state.painLevel,
+        desc: desc,
+        status: 'pending',
+        urgency: state.painLevel >= 7 ? 'urgent' : 'moderate'
+      });
+      state.complaintText = '';
+      alert(state.lang === 'ar' ? 'تم إرسال شكواك ومجسم الأسنان بنجاح إلى د. كريم!' : 'Your complaint & dental model were sent to Dr. Karim!');
+      navigate('records');
+    }
+
+    function submitDoctorDiagnosis(id) {
+      const condInput = document.getElementById('diag-cond')?.value;
+      const instInput = document.getElementById('diag-inst')?.value;
+      const c = state.complaints.find(item => item.id === id);
+      if (c) {
+        c.status = 'diagnosed';
+        c.diagnosis = {
+          condition: condInput || 'التهاب عصب حاد',
+          firstAid: instInput || 'تسكين مؤقت ومراجعة العيادة'
+        };
+      }
+      alert(state.lang === 'ar' ? 'تم إرسال التقرير والتشخيص المبدئي للمريض بنجاح!' : 'Diagnosis report sent to patient successfully!');
+      navigate('doctor_dashboard');
+    }
+
+    // 100% MATHEMATICALLY PERFECT & ANATOMICALLY BEAUTIFUL DENTAL JAW (SYMMETRICAL ARCH)
+    function renderRealisticJawSvg(jawType) {
+      const isUpper = jawType === 'upper';
+
+      // Symmetrical coordinates for Upper Arch (Midline X = 190)
+      const upperTeeth = [
+        // Right Quadrant (FDI 18 to 11)
+        { num: 18, cx: 58,  cy: 295, w: 32, h: 32, rx: 8,  type: 'molar' },
+        { num: 17, cx: 62,  cy: 250, w: 33, h: 33, rx: 8,  type: 'molar' },
+        { num: 16, cx: 68,  cy: 202, w: 35, h: 35, rx: 9,  type: 'molar' },
+        { num: 15, cx: 80,  cy: 156, w: 29, h: 29, rx: 7,  type: 'premolar' },
+        { num: 14, cx: 96,  cy: 114, w: 28, h: 28, rx: 7,  type: 'premolar' },
+        { num: 13, cx: 120, cy: 78,  w: 26, h: 28, rx: 11, type: 'canine' },
+        { num: 12, cx: 148, cy: 54,  w: 25, h: 27, rx: 6,  type: 'incisor' },
+        { num: 11, cx: 175, cy: 44,  w: 26, h: 28, rx: 5,  type: 'incisor' },
+
+        // Left Quadrant (FDI 21 to 28) - Exact Mirror: cx' = 190 + (190 - cx)
+        { num: 21, cx: 205, cy: 44,  w: 26, h: 28, rx: 5,  type: 'incisor' },
+        { num: 22, cx: 232, cy: 54,  w: 25, h: 27, rx: 6,  type: 'incisor' },
+        { num: 23, cx: 260, cy: 78,  w: 26, h: 28, rx: 11, type: 'canine' },
+        { num: 24, cx: 284, cy: 114, w: 28, h: 28, rx: 7,  type: 'premolar' },
+        { num: 25, cx: 300, cy: 156, w: 29, h: 29, rx: 7,  type: 'premolar' },
+        { num: 26, cx: 312, cy: 202, w: 35, h: 35, rx: 9,  type: 'molar' },
+        { num: 27, cx: 318, cy: 250, w: 33, h: 33, rx: 8,  type: 'molar' },
+        { num: 28, cx: 322, cy: 295, w: 32, h: 32, rx: 8,  type: 'molar' }
+      ];
+
+      // Symmetrical coordinates for Lower Arch (Midline X = 190)
+      const lowerTeeth = [
+        // Right Quadrant (FDI 48 to 41)
+        { num: 48, cx: 58,  cy: 45,  w: 32, h: 32, rx: 8,  type: 'molar' },
+        { num: 47, cx: 62,  cy: 90,  w: 33, h: 33, rx: 8,  type: 'molar' },
+        { num: 46, cx: 68,  cy: 138, w: 35, h: 35, rx: 9,  type: 'molar' },
+        { num: 45, cx: 80,  cy: 184, w: 29, h: 29, rx: 7,  type: 'premolar' },
+        { num: 44, cx: 96,  cy: 226, w: 28, h: 28, rx: 7,  type: 'premolar' },
+        { num: 43, cx: 120, cy: 262, w: 26, h: 28, rx: 11, type: 'canine' },
+        { num: 42, cx: 148, cy: 286, w: 25, h: 27, rx: 6,  type: 'incisor' },
+        { num: 41, cx: 175, cy: 296, w: 26, h: 28, rx: 5,  type: 'incisor' },
+
+        // Left Quadrant (FDI 31 to 38) - Exact Mirror: cx' = 190 + (190 - cx)
+        { num: 31, cx: 205, cy: 296, w: 26, h: 28, rx: 5,  type: 'incisor' },
+        { num: 32, cx: 232, cy: 286, w: 25, h: 27, rx: 6,  type: 'incisor' },
+        { num: 33, cx: 260, cy: 262, w: 26, h: 28, rx: 11, type: 'canine' },
+        { num: 34, cx: 284, cy: 226, w: 28, h: 28, rx: 7,  type: 'premolar' },
+        { num: 35, cx: 300, cy: 184, w: 29, h: 29, rx: 7,  type: 'premolar' },
+        { num: 36, cx: 312, cy: 138, w: 35, h: 35, rx: 9,  type: 'molar' },
+        { num: 37, cx: 318, cy: 90,  w: 33, h: 33, rx: 8,  type: 'molar' },
+        { num: 38, cx: 322, cy: 45,  w: 32, h: 32, rx: 8,  type: 'molar' }
+      ];
+
+      const teeth = isUpper ? upperTeeth : lowerTeeth;
+
+      // Perfectly contoured Gum Splines
+      const upperGumSpline = "M 58,305 C 50,165 95,44 190,44 C 285,44 330,165 322,305";
+      const lowerGumSpline = "M 58,35 C 50,175 95,296 190,296 C 285,296 330,175 322,35";
+
+      return `
+        <svg class="svg-jaw-stage" viewBox="0 0 380 340" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <!-- Realistic Pink Gingiva Ribbon Gradient -->
+            <linearGradient id="gumRibbon" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#f43f5e" />
+              <stop offset="40%" stop-color="#fb7185" />
+              <stop offset="70%" stop-color="#fda4af" />
+              <stop offset="100%" stop-color="#f43f5e" />
+            </linearGradient>
+
+            <!-- Glossy Enamel Tooth Surface -->
+            <linearGradient id="toothEnamel" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="#ffffff" />
+              <stop offset="50%" stop-color="#f8fafc" />
+              <stop offset="100%" stop-color="#e2e8f0" />
+            </linearGradient>
+
+            <!-- Selected Vibrant Blue -->
+            <linearGradient id="selectedGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="#38bdf8" />
+              <stop offset="50%" stop-color="#0284c7" />
+              <stop offset="100%" stop-color="#0369a1" />
+            </linearGradient>
+
+            <filter id="shadowFilter" x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#0f172a" flood-opacity="0.18" />
+            </filter>
+          </defs>
+
+          <!-- 1. Anatomical Pink Gum Arch -->
+          <path
+            d="${isUpper ? upperGumSpline : lowerGumSpline}"
+            stroke="url(#gumRibbon)"
+            stroke-width="50"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            fill="none"
+            opacity="0.88"
+          />
+
+          <!-- 2. Central Dental Midline -->
+          <line x1="190" y1="15" x2="190" y2="325" stroke="#0284c7" stroke-width="1.5" stroke-dasharray="4,4" opacity="0.45" />
+
+          <!-- 3. All 16 Anatomical Teeth Placed Exactly on the Arch -->
+          ${teeth.map(t => {
+            const isSel = state.selectedTeeth.includes(t.num);
+            const halfW = t.w / 2;
+            const halfH = t.h / 2;
+
+            return `
+              <g onclick="toggleTooth(${t.num})" class="svg-tooth-group ${isSel ? 'selected' : ''}" transform="translate(${t.cx}, ${t.cy})">
+                <!-- Tooth Body -->
+                <rect
+                  class="tooth-shape"
+                  x="${-halfW}"
+                  y="${-halfH}"
+                  width="${t.w}"
+                  height="${t.h}"
+                  rx="${t.rx}"
+                  fill="url(#toothEnamel)"
+                  stroke="#94a3b8"
+                  stroke-width="1.3"
+                  filter="url(#shadowFilter)"
+                />
+
+                <!-- Anatomical Fissures -->
+                ${t.type === 'molar' ? `
+                  <line class="fissure-line" x1="${-halfW + 6}" y1="0" x2="${halfW - 6}" y2="0" stroke="#cbd5e1" stroke-width="1.2" />
+                  <line class="fissure-line" x1="0" y1="${-halfH + 6}" x2="0" y2="${halfH - 6}" stroke="#cbd5e1" stroke-width="1.2" />
+                ` : t.type === 'canine' ? `
+                  <circle class="fissure-line" cx="0" cy="0" r="3" fill="none" stroke="#cbd5e1" stroke-width="1" />
+                ` : `
+                  <line class="fissure-line" x1="${-halfW + 5}" y1="0" x2="${halfW - 5}" y2="0" stroke="#cbd5e1" stroke-width="1" />
+                `}
+
+                <!-- Clear FDI Number -->
+                <text x="0" y="4" font-size="11" font-weight="900" text-anchor="middle" fill="#0f172a">${t.num}</text>
+              </g>
+            `;
+          }).join('')}
+        </svg>
+      `;
+    }
+
+    function render() {
+      const d = DICTIONARY[state.lang];
+      const screen = document.getElementById('app-screen');
+
+      // Update Header & Nav Labels
+      document.getElementById('txt-header-title').innerText = d.appTitle;
+      document.getElementById('txt-header-sub').innerText = d.appSub;
+      document.getElementById('btn-lang').innerText = d.btnLang;
+      document.getElementById('btn-role').innerText = state.role === 'patient' ? d.btnRoleDoctor : d.btnRolePatient;
+
+      document.getElementById('txt-nav-home').innerText = d.navHome;
+      document.getElementById('txt-nav-triage').innerText = d.navTriage;
+      document.getElementById('txt-nav-apt').innerText = d.navAppointments;
+      document.getElementById('txt-nav-rec').innerText = d.navRecords;
+      document.getElementById('txt-nav-chat').innerText = d.navChat;
+      document.getElementById('txt-nav-doc-dash').innerText = d.navDoctorCases;
+      document.getElementById('txt-nav-doc-sched').innerText = d.navDoctorSchedule;
+      document.getElementById('txt-nav-doc-chat').innerText = d.navDoctorChat;
+
+      if (state.role === 'patient') {
+        if (state.tab === 'triage') {
+          const lastToothNum = state.selectedTeeth[state.selectedTeeth.length - 1] || 16;
+          const toothData = TEETH_DATA[lastToothNum] || { ar: 'الضرس الأول العلوي الأيمن', en: 'Upper Right 1st Molar (#16)' };
+          const toothName = state.lang === 'ar' ? toothData.ar : toothData.en;
+
+          screen.innerHTML = `
+            <!-- Screen Title -->
+            <div class="card" style="background: linear-gradient(135deg, #0284c7, #0369a1); color: white; border: none;">
+              <div style="font-size: 15px; font-weight: 900;">${d.triageTitle}</div>
+              <p style="font-size: 11px; opacity: 0.9; margin-top: 3px;">${d.triageSub}</p>
+            </div>
+
+            <!-- REALISTIC JAW CARD -->
+            <div class="jaw-container-card">
+              <!-- Jaw Tabs Switcher -->
+              <div class="jaw-switch-tabs">
+                <button onclick="switchJaw('upper')" class="jaw-tab ${state.activeJaw === 'upper' ? 'active' : ''}">
+                  <span>⬆️ ${d.jawUpper}</span>
+                </button>
+                <button onclick="switchJaw('lower')" class="jaw-tab ${state.activeJaw === 'lower' ? 'active' : ''}">
+                  <span>⬇️ ${d.jawLower}</span>
+                </button>
+              </div>
+
+              <!-- Direction Header -->
+              <div class="jaw-direction-header">
+                <span>${d.rightSide}</span>
+                <span>${d.leftSide}</span>
+              </div>
+
+              <!-- PERFECT REALISTIC JAW SVG -->
+              ${renderRealisticJawSvg(state.activeJaw)}
+
+              <!-- Inspector Card -->
+              <div class="tooth-inspector-box">
+                <div class="inspector-badge-num">
+                  <span>#${lastToothNum}</span>
+                  <span class="inspector-badge-sub">FDI</span>
+                </div>
+                <div class="inspector-details">
+                  <h4>${toothName}</h4>
+                  <p>${d.inspectorSub}</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Symptoms Checklist -->
+            <div class="card">
+              <strong style="font-size: 13px; display: block; margin-bottom: 8px;">${d.symptomsHeader}</strong>
+              ${SYMPTOMS.map(s => `
+                <div onclick="toggleSymptom('${s.id}')" class="symptom-item ${state.selectedSymptoms.includes(s.id) ? 'active' : ''}">
+                  <span>${state.lang === 'ar' ? s.ar : s.en}</span>
+                  <div class="checkbox-circle">${state.selectedSymptoms.includes(s.id) ? '✓' : ''}</div>
+                </div>
+              `).join('')}
+            </div>
+
+            <!-- Pain Score Slider -->
+            <div class="card">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <strong style="font-size: 13px;">${d.painHeader}</strong>
+                <span class="badge ${state.painLevel >= 7 ? 'badge-urgent' : 'badge-pending'}">${state.painLevel} / 10</span>
+              </div>
+              <input type="range" min="1" max="10" value="${state.painLevel}" oninput="state.painLevel = Number(this.value); render();" style="width:100%; margin: 8px 0; cursor:pointer;">
+              <div style="display: flex; justify-content: space-between; font-size: 10px; color: #64748b; font-weight: 700;">
+                <span>${d.painMild}</span>
+                <span>${d.painMid}</span>
+                <span style="color: #b91c1c;">${d.painHigh}</span>
+              </div>
+            </div>
+
+            <!-- Description Text Area -->
+            <div class="card">
+              <strong style="font-size: 13px;">${d.descHeader}</strong>
+              <textarea
+                id="input-desc"
+                class="textarea-box"
+                placeholder="${d.descPlaceholder}"
+                oninput="onDescriptionChange(this.value)"
+              >${state.complaintText}</textarea>
+            </div>
+
+            <!-- Submit Button -->
+            <button onclick="submitPatientComplaint()" class="btn-submit">
+              ${d.submitComplaint}
+            </button>
+          `;
+        } else if (state.tab === 'home') {
+          screen.innerHTML = `
+            <!-- Centered Doctor Hero Card with Zoomed Face Avatar -->
+            <div class="card" style="display: flex; flex-direction: column; align-items: center; text-align: center; padding: 20px 16px; border: 1.5px solid #cbd5e1; box-shadow: 0 10px 20px rgba(2, 132, 199, 0.08);">
+              <div style="position: relative; margin-bottom: 12px;">
+                <img src="assets/doctor_clinic.jpg" style="width: 90px; height: 90px; border-radius: 45px; object-fit: cover; object-position: center 8%; border: 3.5px solid #0284c7; box-shadow: 0 6px 14px rgba(2, 132, 199, 0.3); display: block;" alt="Dr. Karim">
+                <div style="position: absolute; bottom: -2px; right: 2px; background: #0284c7; color: white; border-radius: 12px; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; border: 2px solid white;">✓</div>
+              </div>
+              <h2 style="font-size: 18px; font-weight: 900; color: #0f172a; margin-bottom: 2px;">${d.appTitle}</h2>
+              <p style="font-size: 12px; color: #0284c7; font-weight: 800; margin-bottom: 8px;">${d.appSub}</p>
+              <div style="color: #854d0e; font-size: 11px; font-weight: 700; background: #fef9c3; padding: 4px 14px; border-radius: 20px; display: inline-flex; align-items: center; gap: 4px; border: 1px solid #fde047; margin-bottom: 12px;">⭐ 4.9 (+450 تقييم ممتاز)</div>
+
+              <!-- Quick Stats Banner -->
+              <div style="display: flex; justify-content: space-around; width: 100%; border-top: 1px solid #f1f5f9; padding-top: 12px; margin-top: 4px;">
+                <div>
+                  <div style="font-size: 14px; font-weight: 900; color: #0284c7;">+12</div>
+                  <div style="font-size: 10px; color: #64748b; font-weight: 700;">سنة خبرة</div>
+                </div>
+                <div style="width: 1px; background: #e2e8f0; height: 26px;"></div>
+                <div>
+                  <div style="font-size: 14px; font-weight: 900; color: #0d9488;">+5000</div>
+                  <div style="font-size: 10px; color: #64748b; font-weight: 700;">مريض راضٍ</div>
+                </div>
+                <div style="width: 1px; background: #e2e8f0; height: 26px;"></div>
+                <div>
+                  <div style="font-size: 14px; font-weight: 900; color: #eab308;">4.9/5</div>
+                  <div style="font-size: 10px; color: #64748b; font-weight: 700;">تقييم معتمد</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Full-Frame About Doctor Showcase with Raised Body & Upper Torso Visible -->
+            <div class="card" style="padding: 0; overflow: hidden; border: 1.5px solid #cbd5e1; box-shadow: 0 10px 20px rgba(0,0,0,0.06);">
+              <div style="position: relative; width: 100%; height: 280px; overflow: hidden; background: #0f172a;">
+                <img src="assets/doctor_formal.jpg" style="width: 100%; height: 100%; object-fit: cover; object-position: center 28%; display: block;" alt="Dr. Karim Abo Bakr">
+                <div style="position: absolute; bottom: 10px; right: 14px; background: rgba(2, 132, 199, 0.95); color: white; border-radius: 12px; padding: 4px 10px; font-size: 11px; font-weight: 800; border: 1.5px solid white; backdrop-filter: blur(4px);">✓ استشاري موثق</div>
+              </div>
+              <div style="padding: 16px; display: flex; flex-direction: column; align-items: center; text-align: center; background: white;">
+                <h3 style="font-size: 18px; font-weight: 900; color: #0369a1; margin-bottom: 4px;">د. كريم أبو بكر</h3>
+                <div style="background: #e0f2fe; color: #0284c7; font-weight: 800; font-size: 11px; padding: 4px 14px; border-radius: 8px; margin-bottom: 8px;">استشاري طب وجراحة وتجميل وزراعة الأسنان</div>
+                <p style="font-size: 11px; color: #475569; line-height: 1.6; max-width: 320px;">تقديم أحدث الحلول العلاجية والتجميلية وزراعة وتجميل الأسنان بأعلى معايير التعقيم العالمية وأحدث التقنيات الرقمية المتقدمة.</p>
+              </div>
+            </div>
+
+            <button onclick="navigate('triage')" class="btn-submit" style="padding: 16px; font-size: 15px;">
+              ${d.triageTitle}
+            </button>
+
+            <button onclick="navigate('chat')" class="btn-submit" style="padding: 16px; font-size: 15px; background: #0284c7;">
+              💬 ${d.chatTitle}
+            </button>
+
+            <button onclick="navigate('appointments')" class="btn-submit" style="padding: 16px; font-size: 15px; background: #0d9488;">
+              ${d.navAppointments}
+            </button>
+          `;
+        } else if (state.tab === 'appointments') {
+          screen.innerHTML = `
+            <div class="card">
+              <strong style="font-size: 14px;">${d.navAppointments}</strong>
+              <select style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 10px; margin: 8px 0; font-size: 12px; font-weight: 700;">
+                <option>علاج وجذور وأعصاب (علاج عصب) - 900 ج.م</option>
+                <option>حشوات تجميلية كمبوزيت - 450 ج.م</option>
+                <option>تنظيف وتلميع وإزالة الجير - 350 ج.م</option>
+                <option>كشف واستشارة طبية شاملة - 200 ج.م</option>
+              </select>
+              <button onclick="alert('Confirmed!')" class="btn-submit" style="background: #0d9488; margin-top: 10px;">
+                ${state.lang === 'ar' ? 'تأكيد الحجز والدفع بالعيادة' : 'Confirm Booking (Pay at Clinic)'}
+              </button>
+            </div>
+          `;
+        } else if (state.tab === 'records') {
+          screen.innerHTML = `
+            <div style="font-weight: 800; font-size: 14px;">${d.navRecords}</div>
+            ${state.complaints.map(c => `
+              <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                  <span class="badge ${c.urgency === 'urgent' ? 'badge-urgent' : 'badge-pending'}">${c.urgency === 'urgent' ? 'عاجلة' : 'متوسطة'}</span>
+                  <span class="badge ${c.status === 'diagnosed' ? 'badge-done' : 'badge-pending'}">${c.status === 'diagnosed' ? 'تم التشخيص' : 'قيد المراجعة'}</span>
+                </div>
+                <div style="font-size: 12px; font-weight: 700; color: #0f172a; margin: 4px 0;">"${c.desc}"</div>
+                <div style="font-size: 11px; color: #0284c7; font-weight: 800;">${d.affectedTooth} #${c.teeth.join(', #')}</div>
+
+                ${c.diagnosis ? `
+                  <div style="background: #f0fdf4; border: 1.5px solid #0d9488; border-radius: 12px; padding: 12px; margin-top: 8px;">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px; border-bottom: 1px solid #dcfce7; padding-bottom: 6px;">
+                      <img src="assets/doctor_clinic.jpg" style="width: 34px; height: 34px; border-radius: 17px; object-fit: cover; border: 1.5px solid #0d9488;">
+                      <div>
+                        <strong style="color: #0f766e; font-size: 12px;">تقرير تشخيص د. كريم أبو بكر</strong>
+                        <div style="font-size: 9px; color: #64748b;">استشاري الأسنان المعتمد</div>
+                      </div>
+                    </div>
+                    <div style="font-size: 13px; font-weight: 800; margin: 4px 0; color: #0f172a;">${c.diagnosis.condition}</div>
+                    <div style="font-size: 11px; color: #334155; line-height: 1.4;">${c.diagnosis.firstAid}</div>
+                    <button onclick="navigate('chat')" class="btn-submit" style="background:#0284c7; padding:8px; font-size:11px; margin-top:8px;">
+                      💬 ${d.chatWithDoctor}
+                    </button>
+                  </div>
+                ` : `
+                  <div style="background: #fef9c3; color: #854d0e; padding: 8px; border-radius: 8px; font-size: 11px; margin-top: 6px;">
+                    ⏳ الشكوى قيد فحص الطبيب حالياً...
+                    <button onclick="navigate('chat')" class="btn-submit" style="background:#0284c7; padding:6px; font-size:10px; margin-top:6px;">
+                      💬 ${d.chatWithDoctor}
+                    </button>
+                  </div>
+                `}
+              </div>
+            `).join('')}
+          `;
+        } else if (state.tab === 'chat') {
+          // Patient Chat Screen
+          screen.innerHTML = `
+            <div class="chat-header-bar">
+              <div class="chat-partner-title">
+                ${state.role === 'patient' ? '<img src="assets/doctor_clinic.jpg" style="width: 32px; height: 32px; border-radius: 16px; object-fit: cover; border: 1px solid #0284c7; margin-left: 6px;">' : '<div class="online-indicator"></div>'}
+                <span>${state.role === 'doctor' ? 'أحمد محمود سليمان (المريض)' : 'د. كريم أبو بكر (استشاري الأسنان)'}</span>
+              </div>
+              <span class="badge badge-done">متاح للرد</span>
+            </div>
+
+            <div style="flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:8px; padding-bottom:60px;">
+              ${state.messages.map(m => {
+                const isMe = (state.role === 'doctor' && m.senderRole === 'doctor') || (state.role === 'patient' && m.senderRole === 'patient');
+                const isDoc = m.senderRole === 'doctor';
+                return `
+                  <div class="chat-bubble-row ${isMe ? 'me' : 'other'}">
+                    ${!isMe && isDoc ? '<img src="assets/doctor_clinic.jpg" style="width: 30px; height: 30px; border-radius: 15px; object-fit: cover; border: 1px solid #0284c7; margin-bottom: 2px;">' : ''}
+                    <div class="chat-bubble ${isMe ? 'me' : 'other'}">
+                      <strong style="font-size:10px; display:block; margin-bottom:2px; opacity:0.9;">${m.senderName}</strong>
+                      <div>${m.text}</div>
+                      <div class="chat-meta">${m.time} ${isMe ? '✓✓' : ''}</div>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+
+            <div class="chat-input-bar">
+              <button onclick="alert('Attached photo!')" class="chat-action-icon-btn">📷</button>
+              <button onclick="alert('Voice message recorded!')" class="chat-action-icon-btn">🎤</button>
+              <input id="chat-input-box" class="chat-input-field" placeholder="${d.chatPlaceholder}" onkeydown="if(event.key==='Enter') sendChatMessage()">
+              <button onclick="sendChatMessage()" class="chat-send-btn">➤</button>
+            </div>
+          `;
+        }
+      } else {
+        // Doctor Dashboard & Doctor Chat
+        if (state.tab === 'chat') {
+          screen.innerHTML = `
+            <div class="chat-header-bar">
+              <div class="chat-partner-title">
+                <div class="online-indicator"></div>
+                <span>أحمد محمود سليمان (حالة السن #16)</span>
+              </div>
+              <span class="badge badge-urgent">ألم حاد 8/10</span>
+            </div>
+
+            <div style="flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:8px; padding-bottom:60px;">
+              ${state.messages.map(m => {
+                const isMe = m.senderRole === 'doctor';
+                return `
+                  <div class="chat-bubble-row ${isMe ? 'me' : 'other'}">
+                    <div class="chat-bubble ${isMe ? 'me' : 'other'}">
+                      <strong style="font-size:10px; display:block; margin-bottom:2px; opacity:0.9;">${m.senderName}</strong>
+                      <div>${m.text}</div>
+                      <div class="chat-meta">${m.time} ${isMe ? '✓✓' : ''}</div>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+
+            <div class="chat-input-bar">
+              <button onclick="alert('Attached prescription/photo!')" class="chat-action-icon-btn">📷</button>
+              <button onclick="alert('Voice note sent!')" class="chat-action-icon-btn">🎤</button>
+              <input id="chat-input-box" class="chat-input-field" placeholder="${d.chatPlaceholder}" onkeydown="if(event.key==='Enter') sendChatMessage()">
+              <button onclick="sendChatMessage()" class="chat-send-btn">➤</button>
+            </div>
+          `;
+          // Doctor Dashboard
+          screen.innerHTML = `
+            <div class="card" style="background: #0369a1; color: white; border: none; display: flex; align-items: center; gap: 12px;">
+              <img src="assets/doctor_clinic.jpg" style="width: 52px; height: 52px; border-radius: 26px; object-fit: cover; border: 2px solid white; box-shadow: 0 4px 6px rgba(0,0,0,0.2);">
+              <div>
+                <div style="font-weight: 900; font-size: 15px;">${d.doctorDashTitle}</div>
+                <div style="font-size: 11px; opacity: 0.9; margin-top: 2px;">${d.doctorDashSub}</div>
+              </div>
+            </div>
+
+            <div style="font-weight: 800; font-size: 13px;">${d.incomingCases}</div>
+
+            ${state.complaints.map(c => `
+              <div class="card" style="border-color: ${c.status === 'pending' ? '#f59e0b' : '#cbd5e1'};">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <div style="display: flex; align-items: center; gap: 4px; flex-wrap: wrap;">
+                    <strong>${c.patientName}</strong>
+                    <span dir="ltr" style="direction: ltr; unicode-bidi: isolate; font-size: 11px; font-weight: 700; color: #475569;">(${c.patientPhone})</span>
+                  </div>
+                  <span class="badge ${c.status === 'pending' ? 'badge-pending' : 'badge-done'}">${c.status === 'pending' ? 'جديد' : 'تم الرد'}</span>
+                </div>
+                <div style="font-size: 11px; color: #0284c7; font-weight: 800; margin: 4px 0;">${d.affectedTooth} #${c.teeth.join(', #')} | ${d.painLevel} ${c.pain}/10</div>
+                <div style="background: #f8fafc; padding: 8px; border-radius: 8px; font-size: 11px; border: 1px solid #e2e8f0; margin-bottom: 8px;">"${c.desc}"</div>
+
+                <div style="display:flex; gap:8px; margin-bottom:8px;">
+                  <button onclick="navigate('chat')" class="btn-submit" style="background:#0284c7; padding:8px; font-size:11px; margin-top:0;">
+                    💬 ${d.chatWithPatient}
+                  </button>
+                </div>
+
+                ${c.status === 'pending' ? `
+                  <div style="background: #f0fdf4; border: 1px solid #86efac; padding: 10px; border-radius: 10px;">
+                    <strong style="font-size: 11px; color: #166534;">${d.writeDiagnosis}</strong>
+                    <input id="diag-cond" class="text-input" placeholder="${d.provisionalCondPlaceholder}" style="width:100%; padding:8px; margin-top:4px; border:1px solid #cbd5e1; border-radius:8px;">
+                    <textarea id="diag-inst" class="textarea-box" placeholder="${d.instructionsPlaceholder}" style="min-height:60px; margin-top:4px;"></textarea>
+                    <button onclick="submitDoctorDiagnosis('${c.id}')" class="btn-submit" style="padding: 8px; font-size: 11px; margin-top:6px;">
+                      ${d.sendDiagnosisBtn}
+                    </button>
+                  </div>
+                ` : `
+                  <div style="font-size: 11px; color: #0f766e; font-weight: 700;">✅ تم إرسال تقرير التشخيص للمريض</div>
+                `}
+              </div>
+            `).join('')}
+          `;
+        }
+      }
+    }
+
+    // Initial render
+    render();
+  </script>
+</body>
+</html>
