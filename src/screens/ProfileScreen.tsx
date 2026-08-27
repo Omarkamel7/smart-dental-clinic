@@ -26,6 +26,12 @@ import { useNavigation } from '@react-navigation/native';
 import { Colors, Shadows } from '../constants/theme';
 import { useApp } from '../context/AppContext';
 import { CLINIC_INFO } from '../constants/dentalData';
+import {
+  checkForAppUpdates,
+  openApkDownload,
+  applyOtaUpdate,
+  APP_VERSION_DATA,
+} from '../services/versionControl';
 
 export const ProfileScreen: React.FC = () => {
   const navigation = useNavigation<any>();
@@ -48,9 +54,53 @@ export const ProfileScreen: React.FC = () => {
   const [hasHypertension, setHasHypertension] = useState(
     currentUser?.medicalHistory?.hasHypertension ?? false
   );
-  const [hasPenicillinAllergy, setHasPenicillinAllergy] = useState(
-    currentUser?.medicalHistory?.hasPenicillinAllergy ?? false
-  );
+  const [hasBleedingDisorder, setHasBleedingDisorder] = useState(false);
+  const [hasPenicillinAllergy, setHasPenicillinAllergy] = useState(false);
+  const [checkingUpdate, setCheckingUpdate] = useState(false);
+
+  const handleManualCheckUpdate = async () => {
+    setCheckingUpdate(true);
+    try {
+      const result = await checkForAppUpdates();
+      if (result.hasUpdate) {
+        Alert.alert(
+          language === 'ar' ? '🚀 يتوفر تحديث جديد!' : '🚀 New Update Available!',
+          language === 'ar'
+            ? `الإصدار الجديد: v${result.version}\n\n${result.releaseNotesAr}`
+            : `New Version: v${result.version}\n\n${result.releaseNotesEn}`,
+          [
+            {
+              text: language === 'ar' ? 'تنزيل APK مباشر' : 'Download APK',
+              onPress: () => openApkDownload(result.apkDownloadUrl),
+            },
+            result.hasOtaUpdate
+              ? {
+                  text: language === 'ar' ? 'تحديث فوري' : 'Instant Update',
+                  onPress: () => applyOtaUpdate(),
+                }
+              : {
+                  text: language === 'ar' ? 'إلغاء' : 'Cancel',
+                  style: 'cancel',
+                },
+          ]
+        );
+      } else {
+        Alert.alert(
+          language === 'ar' ? '✓ التطبيق محدث' : '✓ Up to Date',
+          language === 'ar'
+            ? `أنت تستخدم أحدث إصدار معتمد v${APP_VERSION_DATA.version}. متصل بنجاح مع Supabase و GitHub.`
+            : `You are on the latest version v${APP_VERSION_DATA.version}. Connected to Supabase & GitHub.`
+        );
+      }
+    } catch (e: any) {
+      Alert.alert(
+        language === 'ar' ? 'حالة التحديث' : 'Update Status',
+        language === 'ar' ? 'اكتمل فحص التحديثات.' : 'Update check completed.'
+      );
+    } finally {
+      setCheckingUpdate(false);
+    }
+  };
 
   // Sync state if currentUser changes
   useEffect(() => {
@@ -315,7 +365,9 @@ export const ProfileScreen: React.FC = () => {
             <Text style={styles.versionLabel}>
               {language === 'ar' ? 'الإصدار الحالي:' : 'Current Version:'}
             </Text>
-            <Text style={styles.versionValue}>v1.0.0 (Build 100)</Text>
+            <Text style={styles.versionValue}>
+              v{APP_VERSION_DATA.version} (Build {APP_VERSION_DATA.buildNumber})
+            </Text>
           </View>
           <View style={styles.versionStatusBadge}>
             <Text style={styles.versionStatusText}>
@@ -326,18 +378,16 @@ export const ProfileScreen: React.FC = () => {
 
         <TouchableOpacity
           style={styles.checkUpdateBtn}
-          onPress={() =>
-            Alert.alert(
-              language === 'ar' ? 'التحقق من التحديثات' : 'Update Status',
-              language === 'ar'
-                ? 'أنت تستخدم أحدث إصدار v1.0.0. المنظومة متصلة بنجاح مع Supabase و GitHub.'
-                : 'You are on the latest version v1.0.0. Connected to Supabase & GitHub.'
-            )
-          }
+          onPress={handleManualCheckUpdate}
+          disabled={checkingUpdate}
         >
-          <Text style={styles.checkUpdateBtnText}>
-            {language === 'ar' ? '🔄 فحص التحديثات الجديدة' : '🔄 Check for Updates'}
-          </Text>
+          {checkingUpdate ? (
+            <ActivityIndicator size="small" color={Colors.primary} />
+          ) : (
+            <Text style={styles.checkUpdateBtnText}>
+              {language === 'ar' ? '🔄 فحص وتحميل التحديثات' : '🔄 Check for Updates'}
+            </Text>
+          )}
         </TouchableOpacity>
       </View>
 

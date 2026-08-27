@@ -30,6 +30,7 @@ import { AuthScreen } from './src/screens/AuthScreen';
 import { EditClinicScreen } from './src/screens/doctor/EditClinicScreen';
 import { ManageServicesScreen } from './src/screens/doctor/ManageServicesScreen';
 import { ManagePortfolioScreen } from './src/screens/doctor/ManagePortfolioScreen';
+import { UpdateNotifierModal } from './src/components/UpdateNotifierModal';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -303,6 +304,7 @@ export default function App() {
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
       <AppProvider>
         <MainNavigation />
+        <UpdateNotifierModal />
       </AppProvider>
     </SafeAreaProvider>
   );
