@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,7 +7,9 @@ import {
   StyleSheet,
   Linking,
   Image,
+  RefreshControl,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import {
   Stethoscope,
   Calendar,
@@ -43,7 +45,27 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     clinicSettings,
     services,
     portfolioCases,
+    refreshClinicData,
   } = useApp();
+
+  const [refreshing, setRefreshing] = useState(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      refreshClinicData().catch((e) => console.warn('HomeScreen focus refresh error:', e));
+    }, [])
+  );
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await refreshClinicData();
+    } catch (e) {
+      console.warn('HomeScreen onRefresh error:', e);
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   const handleCall = () => {
     const phone = clinicSettings?.phoneNumber || CLINIC_INFO.phone;
@@ -70,7 +92,18 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   };
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+    <ScrollView
+      style={styles.container}
+      showsVerticalScrollIndicator={false}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          colors={[Colors.primary]}
+          tintColor={Colors.primary}
+        />
+      }
+    >
       {/* Top Language Switcher Bar */}
       <View style={styles.topBar}>
         <TouchableOpacity

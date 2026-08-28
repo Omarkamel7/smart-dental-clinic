@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -6,7 +6,9 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
+  RefreshControl,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import {
   Calendar as CalendarIcon,
   Clock,
@@ -40,7 +42,27 @@ export const AppointmentsScreen: React.FC<AppointmentsScreenProps> = ({
     bookAppointment,
     cancelAppointment,
     services,
+    refreshClinicData,
   } = useApp();
+
+  const [refreshing, setRefreshing] = useState(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      refreshClinicData().catch((e) => console.warn('Appointments focus refresh error:', e));
+    }, [])
+  );
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await refreshClinicData();
+    } catch (e) {
+      console.warn('Appointments onRefresh error:', e);
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   const activeServices = services.length > 0 ? services : DEFAULT_SERVICES;
   const preselectedServiceId = route?.params?.selectedServiceId;
@@ -116,7 +138,18 @@ export const AppointmentsScreen: React.FC<AppointmentsScreenProps> = ({
   );
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+    <ScrollView
+      style={styles.container}
+      showsVerticalScrollIndicator={false}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          colors={[Colors.primary]}
+          tintColor={Colors.primary}
+        />
+      }
+    >
       {/* 1. Select Service */}
       <View style={styles.sectionBox}>
         <Text style={styles.sectionTitle}>{t.selectService}</Text>

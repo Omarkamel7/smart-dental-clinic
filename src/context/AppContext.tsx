@@ -65,6 +65,7 @@ interface AppContextType {
   deletePortfolioCase: (caseId: string) => Promise<void>;
   messages: ChatMessage[];
   sendMessage: (consultationId: string, text: string, audioUri?: string, imageUri?: string) => Promise<void>;
+  refreshClinicData: () => Promise<void>;
   signOut: () => Promise<void>;
   isAuthenticated: boolean;
   t: typeof translations.ar;
@@ -495,6 +496,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
+  const refreshClinicData = async () => {
+    if (!isSupabaseConfigured) return;
+    try {
+      await Promise.all([
+        fetchClinicSettings(),
+        fetchServices(),
+        fetchPortfolio(),
+        fetchRemoteUserData(),
+      ]);
+      console.log('[Supabase] Full clinic data refreshed from cloud.');
+    } catch (err) {
+      console.error('[Supabase] refreshClinicData error:', err);
+    }
+  };
+
   const updateClinicSettings = async (settingsUpdate: Partial<ClinicSettings>) => {
     const updated = { ...clinicSettings, ...settingsUpdate };
     setClinicSettings(updated);
@@ -502,27 +518,36 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     if (isSupabaseConfigured) {
       try {
-        await supabase
+        console.log('[Supabase] Upserting clinic_settings to cloud:', updated.doctorName);
+        const { error } = await supabase
           .from('clinic_settings')
-          .update({
+          .upsert({
+            id: 'main',
             doctor_name: updated.doctorName,
             doctor_title: updated.doctorTitle,
             doctor_bio: updated.doctorBio,
-            avatar_url: updated.avatarUrl,
-            cover_image_url: updated.coverImageUrl,
-            years_experience: updated.yearsExperience,
-            patients_count: updated.patientsCount,
-            rating: updated.rating,
-            phone_number: updated.phoneNumber,
-            whatsapp_number: updated.whatsappNumber,
-            location_address: updated.locationAddress,
-            location_maps_url: updated.locationMapsUrl,
-            working_hours: updated.workingHours,
+            avatar_url: updated.avatarUrl || '',
+            cover_image_url: updated.coverImageUrl || '',
+            years_experience: updated.yearsExperience || 12,
+            patients_count: updated.patientsCount || 3500,
+            rating: updated.rating || 4.9,
+            phone_number: updated.phoneNumber || '+20 100 000 0000',
+            whatsapp_number: updated.whatsappNumber || '+20 100 000 0000',
+            location_address: updated.locationAddress || 'مصر الجديدة - القاهرة',
+            location_maps_url: updated.locationMapsUrl || 'https://maps.google.com',
+            working_hours: updated.workingHours || 'السبت - الخميس: 12:00 م - 10:00 م',
             updated_at: new Date().toISOString(),
-          })
-          .eq('id', 'main');
+          });
+
+        if (error) {
+          console.error('[Supabase] updateClinicSettings error:', error);
+          throw error;
+        } else {
+          console.log('[Supabase] Clinic settings saved to cloud successfully');
+        }
       } catch (err) {
-        console.warn('Supabase update clinic settings error:', err);
+        console.error('[Supabase] updateClinicSettings exception:', err);
+        throw err;
       }
     }
   };
@@ -536,7 +561,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     if (isSupabaseConfigured) {
       try {
-        await supabase.from('services').insert({
+        console.log('[Supabase] Inserting service to cloud:', id, newService.nameAr);
+        const { error } = await supabase.from('services').upsert({
           id,
           name_ar: newService.nameAr,
           name_en: newService.nameEn,
@@ -549,8 +575,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           is_active: true,
           sort_order: updated.length,
         });
+
+        if (error) {
+          console.error('[Supabase] addService error:', error);
+        } else {
+          console.log('[Supabase] Service added to cloud successfully:', id);
+        }
       } catch (err) {
-        console.warn('Supabase add service error:', err);
+        console.error('[Supabase] addService exception:', err);
       }
     }
 
@@ -564,9 +596,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     if (isSupabaseConfigured) {
       try {
-        await supabase
+        console.log('[Supabase] Updating service in cloud:', service.id);
+        const { error } = await supabase
           .from('services')
-          .update({
+          .upsert({
+            id: service.id,
             name_ar: service.nameAr,
             name_en: service.nameEn,
             description_ar: service.descriptionAr,
@@ -575,10 +609,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             duration_minutes: service.durationMinutes,
             icon_name: service.iconName,
             category: service.category,
-          })
-          .eq('id', service.id);
+            is_active: true,
+          });
+
+        if (error) {
+          console.error('[Supabase] updateService error:', error);
+        } else {
+          console.log('[Supabase] Service updated in cloud successfully:', service.id);
+        }
       } catch (err) {
-        console.warn('Supabase update service error:', err);
+        console.error('[Supabase] updateService exception:', err);
       }
     }
   };
@@ -590,9 +630,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     if (isSupabaseConfigured) {
       try {
-        await supabase.from('services').delete().eq('id', serviceId);
+        console.log('[Supabase] Deleting service from cloud:', serviceId);
+        const { error } = await supabase.from('services').delete().eq('id', serviceId);
+        if (error) {
+          console.error('[Supabase] deleteService error:', error);
+        }
       } catch (err) {
-        console.warn('Supabase delete service error:', err);
+        console.error('[Supabase] deleteService exception:', err);
       }
     }
   };
@@ -600,7 +644,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const addPortfolioCase = async (
     caseItem: Omit<BeforeAfterCase, 'id'>
   ): Promise<BeforeAfterCase> => {
-    const id = `case_${Date.now()}`;
+    const id = generateUUID();
     const newCase: BeforeAfterCase = { ...caseItem, id, createdAt: new Date().toISOString() };
     const updated = [newCase, ...portfolioCases];
     setPortfolioCases(updated);
@@ -608,7 +652,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     if (isSupabaseConfigured) {
       try {
-        await supabase.from('portfolio_cases').insert({
+        console.log('[Supabase] Inserting portfolio case to cloud:', id, caseItem.titleAr);
+        const { error } = await supabase.from('portfolio_cases').insert({
           id,
           title_ar: caseItem.titleAr,
           title_en: caseItem.titleEn,
@@ -620,8 +665,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           after_image_url: caseItem.afterImageUrl,
           duration_weeks: caseItem.durationWeeks || 2,
         });
+
+        if (error) {
+          console.error('[Supabase] addPortfolioCase error:', error);
+        } else {
+          console.log('[Supabase] Portfolio case added to cloud successfully:', id);
+        }
       } catch (err) {
-        console.warn('Supabase add portfolio case error:', err);
+        console.error('[Supabase] addPortfolioCase exception:', err);
       }
     }
 
@@ -635,9 +686,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     if (isSupabaseConfigured) {
       try {
-        await supabase.from('portfolio_cases').delete().eq('id', caseId);
+        console.log('[Supabase] Deleting portfolio case from cloud:', caseId);
+        const { error } = await supabase.from('portfolio_cases').delete().eq('id', caseId);
+        if (error) {
+          console.error('[Supabase] deletePortfolioCase error:', error);
+        }
       } catch (err) {
-        console.warn('Supabase delete portfolio error:', err);
+        console.error('[Supabase] deletePortfolioCase exception:', err);
       }
     }
   };
@@ -1015,6 +1070,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         deletePortfolioCase,
         messages,
         sendMessage,
+        refreshClinicData,
         signOut,
         isAuthenticated,
         t,

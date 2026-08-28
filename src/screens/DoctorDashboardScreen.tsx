@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,7 +7,9 @@ import {
   StyleSheet,
   Image,
   Alert,
+  RefreshControl,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import {
   Stethoscope,
   Clock,
@@ -31,7 +33,26 @@ interface DoctorDashboardScreenProps {
 export const DoctorDashboardScreen: React.FC<DoctorDashboardScreenProps> = ({
   navigation,
 }) => {
-  const { t, language, complaints, appointments, doctorInbox, setRole, isRTL } = useApp();
+  const { t, language, complaints, appointments, doctorInbox, setRole, isRTL, refreshClinicData } = useApp();
+
+  const [refreshing, setRefreshing] = useState(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      refreshClinicData().catch((e) => console.warn('DoctorDashboard focus refresh error:', e));
+    }, [])
+  );
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await refreshClinicData();
+    } catch (e) {
+      console.warn('DoctorDashboard onRefresh error:', e);
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   const pendingComplaints = complaints.filter((c) => c.status === 'pending');
   const diagnosedComplaints = complaints.filter(
@@ -63,7 +84,18 @@ export const DoctorDashboardScreen: React.FC<DoctorDashboardScreenProps> = ({
   };
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+    <ScrollView
+      style={styles.container}
+      showsVerticalScrollIndicator={false}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          colors={[Colors.primary]}
+          tintColor={Colors.primary}
+        />
+      }
+    >
       {/* Doctor Header Banner */}
       <View style={styles.doctorBanner}>
         <View style={styles.bannerHeader}>
