@@ -57,10 +57,12 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ route, navigation }) => 
   const [isSending, setIsSending] = useState(false);
 
   // Patient Identification States
-  const hasPatientInfo = !!(currentUser?.fullName && currentUser?.phone && currentUser.fullName !== 'مريض عيادة د. كريم' && currentUser.phone.trim().length > 3);
+  const hasPatientInfo = !!(currentUser?.fullName && currentUser?.phone && currentUser.fullName !== 'مريض عيادة د. كريم' && currentUser.phone.replace(/[^0-9]/g, '').length >= 8);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [patientNameInput, setPatientNameInput] = useState(currentUser?.fullName || '');
   const [patientPhoneInput, setPatientPhoneInput] = useState(currentUser?.phone || '');
+  const [nameError, setNameError] = useState<string | null>(null);
+  const [phoneError, setPhoneError] = useState<string | null>(null);
 
   const flatListRef = useRef<FlatList>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -129,17 +131,45 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ route, navigation }) => 
   };
 
   const handleSaveProfileAndContinue = async () => {
-    if (!patientNameInput.trim() || !patientPhoneInput.trim()) {
-      Alert.alert(
-        language === 'ar' ? 'تنبيه' : 'Required Information',
+    let isValid = true;
+    const cleanName = patientNameInput.trim();
+    const cleanPhone = patientPhoneInput.trim();
+    const phoneDigits = cleanPhone.replace(/[^0-9]/g, '');
+
+    if (!cleanName || cleanName.length < 2) {
+      setNameError(
         language === 'ar'
-          ? 'يرجى إدخال اسمك ورقم هاتفك للبدء والمتابعة مع الطبيب'
-          : 'Please enter your name and phone number to start chatting'
+          ? 'يرجى كتابة الاسم بالكامل بشكل صحيح (حرفين على الأقل)'
+          : 'Please enter your full name (at least 2 characters)'
       );
-      return;
+      isValid = false;
+    } else {
+      setNameError(null);
     }
-    await savePatientQuickProfile(patientNameInput.trim(), patientPhoneInput.trim());
-    setShowProfileModal(false);
+
+    if (!cleanPhone || phoneDigits.length < 8) {
+      setPhoneError(
+        language === 'ar'
+          ? 'يرجى إدخال رقم هاتف صحيح لا يقل عن 8 أرقام (مثال: 01012345678)'
+          : 'Please enter a valid phone number with at least 8 digits'
+      );
+      isValid = false;
+    } else {
+      setPhoneError(null);
+    }
+
+    if (!isValid) return;
+
+    try {
+      await savePatientQuickProfile(cleanName, cleanPhone);
+      setShowProfileModal(false);
+    } catch (err: any) {
+      console.error('[ChatScreen] Error saving patient quick profile:', err);
+      Alert.alert(
+        language === 'ar' ? 'تعذر حفظ البيانات' : 'Save Error',
+        err?.message || (language === 'ar' ? 'يرجى المحاولة مرة أخرى' : 'Please try again')
+      );
+    }
   };
 
   // Handle Pick Image
@@ -287,15 +317,24 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ route, navigation }) => 
     const textToSend = inputMessage.trim();
     let imageToSend: string | undefined = undefined;
 
-    if (selectedImageUri) {
-      imageToSend = await uploadDentalPhoto(selectedImageUri, role);
+    try {
+      if (selectedImageUri) {
+        imageToSend = await uploadDentalPhoto(selectedImageUri, role);
+      }
+
+      setInputMessage('');
+      setSelectedImageUri(null);
+
+      await sendMessage(consultationId, textToSend, undefined, imageToSend);
+    } catch (err: any) {
+      console.error('[ChatScreen] handleSend error:', err);
+      Alert.alert(
+        language === 'ar' ? 'تعذر إرسال الرسالة' : 'Send Error',
+        err?.message || (language === 'ar' ? 'يرجى التحقق من اتصال الإنترنت والمحاولة مرة أخرى' : 'Please check connection and retry')
+      );
+    } finally {
+      setIsSending(false);
     }
-
-    setInputMessage('');
-    setSelectedImageUri(null);
-
-    await sendMessage(consultationId, textToSend, undefined, imageToSend);
-    setIsSending(false);
   };
 
   const renderMessage = ({ item }: { item: ChatMessage }) => {
@@ -692,22 +731,56 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ route, navigation }) => 
               {language === 'ar' ? 'الاسم بالكامل:' : 'Full Name:'}
             </Text>
             <TextInput
-              style={{ backgroundColor: '#f8fafc', borderWidth: 1, borderColor: '#cbd5e1', borderRadius: 12, padding: 12, fontSize: 13, marginBottom: 12, textAlign: language === 'ar' ? 'right' : 'left' }}
+              style={{
+                backgroundColor: '#f8fafc',
+                borderWidth: 1,
+                borderColor: nameError ? Colors.emergency : '#cbd5e1',
+                borderRadius: 12,
+                padding: 12,
+                fontSize: 13,
+                marginBottom: nameError ? 4 : 12,
+                textAlign: language === 'ar' ? 'right' : 'left',
+              }}
               placeholder={language === 'ar' ? 'مثال: محمد أحمد' : 'e.g. John Doe'}
               value={patientNameInput}
-              onChangeText={setPatientNameInput}
+              onChangeText={(txt) => {
+                setPatientNameInput(txt);
+                if (nameError) setNameError(null);
+              }}
             />
+            {nameError && (
+              <Text style={{ fontSize: 11, color: Colors.emergency, fontWeight: '700', marginBottom: 10, textAlign: language === 'ar' ? 'right' : 'left' }}>
+                ⚠️ {nameError}
+              </Text>
+            )}
 
             <Text style={{ fontSize: 12, fontWeight: '700', color: Colors.textPrimary, marginBottom: 4, textAlign: language === 'ar' ? 'right' : 'left' }}>
               {language === 'ar' ? 'رقم الهاتف / الواتساب:' : 'Phone / WhatsApp:'}
             </Text>
             <TextInput
-              style={{ backgroundColor: '#f8fafc', borderWidth: 1, borderColor: '#cbd5e1', borderRadius: 12, padding: 12, fontSize: 13, marginBottom: 18, textAlign: language === 'ar' ? 'right' : 'left' }}
+              style={{
+                backgroundColor: '#f8fafc',
+                borderWidth: 1,
+                borderColor: phoneError ? Colors.emergency : '#cbd5e1',
+                borderRadius: 12,
+                padding: 12,
+                fontSize: 13,
+                marginBottom: phoneError ? 4 : 18,
+                textAlign: language === 'ar' ? 'right' : 'left',
+              }}
               placeholder="+20 100 000 0000"
               keyboardType="phone-pad"
               value={patientPhoneInput}
-              onChangeText={setPatientPhoneInput}
+              onChangeText={(txt) => {
+                setPatientPhoneInput(txt);
+                if (phoneError) setPhoneError(null);
+              }}
             />
+            {phoneError && (
+              <Text style={{ fontSize: 11, color: Colors.emergency, fontWeight: '700', marginBottom: 14, textAlign: language === 'ar' ? 'right' : 'left' }}>
+                ⚠️ {phoneError}
+              </Text>
+            )}
 
             <TouchableOpacity
               onPress={handleSaveProfileAndContinue}

@@ -19,6 +19,7 @@ import {
   DEFAULT_CLINIC_SETTINGS,
 } from '../constants/dentalData';
 import { supabase, isSupabaseConfigured } from '../services/supabase';
+import { generateUUID, isValidUUID } from '../services/uuid';
 
 export interface DoctorInboxItem {
   consultationId: string;
@@ -155,6 +156,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     fetchClinicSettings();
     fetchServices();
     fetchPortfolio();
+    fetchRemoteUserData();
 
     // Check existing auth session
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -176,9 +178,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
     });
 
-    // Setup Realtime Channels for Clinic Data
+    // Setup Realtime Channels for Clinic Data, Messages & Consultations
     const realtimeChannel = supabase
-      .channel('clinic_updates')
+      .channel('clinic_updates_and_messages')
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'clinic_settings' },
@@ -193,6 +195,41 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         'postgres_changes',
         { event: '*', schema: 'public', table: 'portfolio_cases' },
         () => fetchPortfolio()
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'consultations' },
+        () => {
+          console.log('[Realtime] Consultations updated on Supabase');
+          fetchRemoteUserData();
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'messages' },
+        (payload) => {
+          const row = payload.new as any;
+          if (row && row.id) {
+            console.log('[Realtime] New message arrived from Supabase:', row.id, row.text);
+            const formatted: ChatMessage = {
+              id: row.id,
+              consultationId: row.consultation_id || 'general',
+              senderId: row.sender_id || 'sender',
+              senderName: row.sender_name || (row.sender_role === 'doctor' ? 'د. كريم أبو بكر' : 'المريض'),
+              senderRole: row.sender_role || 'patient',
+              text: row.text || '',
+              audioUri: row.audio_url || undefined,
+              imageUri: row.image_url || undefined,
+              timestamp: row.created_at || new Date().toISOString(),
+            };
+            setMessages((prev) => {
+              if (prev.some((m) => m.id === formatted.id)) return prev;
+              const next = [...prev, formatted];
+              AsyncStorage.setItem('@dental_app_messages', JSON.stringify(next)).catch(() => {});
+              return next;
+            });
+          }
+        }
       )
       .subscribe();
 
@@ -701,7 +738,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const savePatientQuickProfile = async (fullName: string, phone: string) => {
-    const patientId = currentUser.id && currentUser.id.length > 5 ? currentUser.id : `pat_${Date.now()}`;
+    const patientId = isValidUUID(currentUser.id) ? currentUser.id : generateUUID();
     const updated: UserProfile = {
       ...currentUser,
       id: patientId,
@@ -714,14 +751,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     if (isSupabaseConfigured) {
       try {
-        await (supabase.from('profiles') as any).upsert({
+        const { error } = await (supabase.from('profiles') as any).upsert({
           id: patientId,
           full_name: fullName.trim(),
           phone: phone.trim(),
           role: 'patient',
         });
+        if (error) {
+          console.error('[Supabase] savePatientQuickProfile error:', error);
+        } else {
+          console.log('[Supabase] Patient profile synced successfully:', patientId);
+        }
       } catch (err) {
-        console.warn('Error syncing quick patient profile to Supabase:', err);
+        console.error('[Supabase] Error syncing quick patient profile:', err);
       }
     }
   };
@@ -729,10 +771,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const createConsultationWithChat = async (
     complaintData: Omit<DentalComplaint, 'id' | 'createdAt' | 'status'>
   ): Promise<{ consultation: DentalComplaint; consultationId: string }> => {
-    const newId = `comp_${Date.now()}`;
+    const newId = generateUUID();
+    const validPatientId = isValidUUID(complaintData.patientId || currentUser.id)
+      ? (complaintData.patientId || currentUser.id)
+      : generateUUID();
+
     const newComplaint: DentalComplaint = {
       ...complaintData,
       id: newId,
+      patientId: validPatientId,
       status: 'pending',
       createdAt: new Date().toISOString(),
     };
@@ -751,10 +798,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     
     const initialText = `🚨 طلب استشارة طبية جديد:\n• الأعراض: ${symptomsLabel}\n• موضع الشكوى: ${teethLabel}\n• شدة الألم: ${complaintData.painLevel || 5}/10\n• تفاصيل الحالة: ${complaintData.description || 'لا يوجد وصف إضافي'}`;
 
+    const newMsgId = generateUUID();
     const newMsg: ChatMessage = {
-      id: `msg_init_${Date.now()}`,
+      id: newMsgId,
       consultationId: newId,
-      senderId: complaintData.patientId || currentUser.id || 'patient',
+      senderId: validPatientId,
       senderName: complaintData.patientName || currentUser.fullName || 'المريض',
       senderRole: 'patient',
       text: initialText,
@@ -769,9 +817,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (isSupabaseConfigured) {
       try {
         // 1. Insert into consultations table
-        await supabase.from('consultations').insert({
+        const { error: compError } = await supabase.from('consultations').insert({
           id: newId,
-          patient_id: complaintData.patientId || currentUser.id,
+          patient_id: validPatientId,
           affected_teeth: complaintData.selectedTeeth || [],
           symptoms: complaintData.symptoms || [],
           pain_level: complaintData.painLevel || 5,
@@ -782,29 +830,54 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           status: 'pending',
         });
 
+        if (compError) {
+          console.error('[Supabase] createConsultation insert error:', compError);
+        } else {
+          console.log('[Supabase] Consultation inserted successfully:', newId);
+        }
+
         // 2. Insert initial summary message into messages table
-        await supabase.from('messages').insert({
+        const { error: msgError } = await supabase.from('messages').insert({
+          id: newMsgId,
           consultation_id: newId,
-          sender_id: complaintData.patientId || currentUser.id,
+          sender_id: validPatientId,
           sender_role: 'patient',
           sender_name: complaintData.patientName || currentUser.fullName || 'المريض',
           text: initialText,
           image_url: complaintData.photoUris && complaintData.photoUris.length > 0 ? complaintData.photoUris[0] : null,
         });
+
+        if (msgError) {
+          console.error('[Supabase] createConsultation initial message error:', msgError);
+        }
       } catch (err) {
-        console.warn('Supabase createConsultationWithChat error:', err);
+        console.error('[Supabase] createConsultationWithChat exception:', err);
       }
     }
 
     return { consultation: newComplaint, consultationId: newId };
   };
 
-  // Derive Doctor Inbox items from complaints and messages
-  const doctorInbox: DoctorInboxItem[] = complaints.map((comp) => {
-    const threadMessages = messages.filter((m) => m.consultationId === comp.id);
-    const lastMsg = threadMessages.length > 0 ? threadMessages[threadMessages.length - 1] : null;
+  // Derive Doctor Inbox items from both complaints and direct chat messages
+  const messageThreads = new Map<string, ChatMessage[]>();
+  messages.forEach((m) => {
+    const cId = m.consultationId || 'general';
+    if (!messageThreads.has(cId)) {
+      messageThreads.set(cId, []);
+    }
+    messageThreads.get(cId)!.push(m);
+  });
 
-    return {
+  const inboxList: DoctorInboxItem[] = [];
+  const processedConsultationIds = new Set<string>();
+
+  // 1. Add all structured complaints
+  complaints.forEach((comp) => {
+    processedConsultationIds.add(comp.id);
+    const thread = messageThreads.get(comp.id) || [];
+    const lastMsg = thread.length > 0 ? thread[thread.length - 1] : null;
+
+    inboxList.push({
       consultationId: comp.id,
       patientId: comp.patientId,
       patientName: comp.patientName || 'مريض',
@@ -819,8 +892,36 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       photoUrls: comp.photoUris || [],
       description: comp.description || '',
       symptoms: comp.symptoms || [],
-    };
+    });
   });
+
+  // 2. Add any standalone patient chat messages that were sent directly
+  messageThreads.forEach((thread, cId) => {
+    if (!processedConsultationIds.has(cId)) {
+      processedConsultationIds.add(cId);
+      const lastMsg = thread[thread.length - 1];
+      const patientMsg = thread.find((m) => m.senderRole === 'patient') || lastMsg;
+
+      inboxList.push({
+        consultationId: cId,
+        patientId: patientMsg?.senderId || 'patient',
+        patientName: patientMsg?.senderName || 'مريض (محادثة مباشرة)',
+        patientPhone: '',
+        lastMessage: lastMsg ? lastMsg.text : 'محادثة مباشرة',
+        lastMessageTime: lastMsg
+          ? new Date(lastMsg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        urgencyLevel: 'moderate',
+        status: 'pending',
+        createdAt: lastMsg?.timestamp || new Date().toISOString(),
+        photoUrls: thread.filter((m) => !!m.imageUri).map((m) => m.imageUri!),
+        description: 'محادثة واستفسار مباشر مع دكتور كريم',
+        symptoms: [],
+      });
+    }
+  });
+
+  const doctorInbox: DoctorInboxItem[] = inboxList;
 
   const sendMessage = async (
     consultationId: string,
@@ -828,34 +929,56 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     audioUri?: string,
     imageUri?: string
   ) => {
+    const msgId = generateUUID();
+    const validConsultationId = isValidUUID(consultationId) ? consultationId : (complaints[0]?.id || generateUUID());
+    const validSenderId = role === 'doctor'
+      ? (isValidUUID(currentUser.id) ? currentUser.id : generateUUID())
+      : (isValidUUID(currentUser.id) ? currentUser.id : generateUUID());
+
     const newMsg: ChatMessage = {
-      id: `msg_${Date.now()}`,
-      consultationId: consultationId || 'general',
-      senderId: role === 'doctor' ? 'doctor' : currentUser.id,
-      senderName: role === 'doctor' ? 'د. كريم أبو بكر' : currentUser.fullName,
+      id: msgId,
+      consultationId: validConsultationId,
+      senderId: validSenderId,
+      senderName: role === 'doctor' ? 'د. كريم أبو بكر' : (currentUser.fullName || 'المريض'),
       senderRole: role,
       text,
       audioUri,
       imageUri,
       timestamp: new Date().toISOString(),
     };
+
     const updated = [...messages, newMsg];
     setMessages(updated);
     await AsyncStorage.setItem('@dental_app_messages', JSON.stringify(updated));
 
     if (isSupabaseConfigured) {
       try {
-        await supabase.from('messages').insert({
-          consultation_id: consultationId || 'comp_01',
-          sender_id: currentUser.id,
+        console.log('[Supabase] Inserting message to database:', {
+          id: msgId,
+          consultation_id: validConsultationId,
+          sender_id: validSenderId,
+          role,
+          text,
+        });
+
+        const { error } = await supabase.from('messages').insert({
+          id: msgId,
+          consultation_id: validConsultationId,
+          sender_id: validSenderId,
           sender_role: role,
-          sender_name: role === 'doctor' ? 'د. كريم أبو بكر' : currentUser.fullName,
+          sender_name: role === 'doctor' ? 'د. كريم أبو بكر' : (currentUser.fullName || 'المريض'),
           text,
           image_url: imageUri || null,
           audio_url: audioUri || null,
         });
+
+        if (error) {
+          console.error('[Supabase] Send message error from Supabase:', error);
+        } else {
+          console.log('[Supabase] Message successfully inserted to Supabase:', msgId);
+        }
       } catch (err) {
-        console.warn('Supabase send message error:', err);
+        console.error('[Supabase] Send message exception:', err);
       }
     }
   };
