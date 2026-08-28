@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -12,6 +12,7 @@ import {
   Modal,
   ActivityIndicator,
   Alert,
+  RefreshControl,
 } from 'react-native';
 import {
   Send,
@@ -43,11 +44,24 @@ interface ChatScreenProps {
 
 export const ChatScreen: React.FC<ChatScreenProps> = ({ route, navigation }) => {
   const consultationId = route?.params?.consultationId || 'comp_01';
-  const { messages, sendMessage, role, t, language, complaints, isRTL, currentUser, savePatientQuickProfile } = useApp();
+  const { messages, sendMessage, role, t, language, complaints, isRTL, currentUser, savePatientQuickProfile, refreshClinicData } = useApp();
 
   const [inputMessage, setInputMessage] = useState('');
   const [selectedImageUri, setSelectedImageUri] = useState<string | null>(null);
   const [previewModalUri, setPreviewModalUri] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await refreshClinicData();
+    } catch (e) {
+      console.warn('ChatScreen onRefresh error:', e);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   const [recording, setRecording] = useState<Audio.Recording | null>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [recordSeconds, setRecordSeconds] = useState(0);
@@ -583,6 +597,14 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ route, navigation }) => 
         keyExtractor={(item) => item.id}
         renderItem={renderMessage}
         contentContainerStyle={styles.messagesList}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[Colors.primary]}
+            tintColor={Colors.primary}
+          />
+        }
         ListEmptyComponent={
           <View style={styles.emptyMessagesBox}>
             <Stethoscope size={40} color={Colors.primary} style={{ marginBottom: 8 }} />

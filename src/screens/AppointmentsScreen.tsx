@@ -250,28 +250,57 @@ export const AppointmentsScreen: React.FC<AppointmentsScreenProps> = ({
 
       {/* 3. Select Time Slot */}
       <View style={styles.sectionBox}>
-        <Text style={styles.sectionTitle}>{t.selectTimeSlot}</Text>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+          <Text style={styles.sectionTitle}>{t.selectTimeSlot}</Text>
+          <Text style={{ fontSize: 11, color: Colors.textMuted }}>
+            {language === 'ar' ? 'المواعيد المتاحة للعيادة' : 'Available Clinic Slots'}
+          </Text>
+        </View>
         <View style={styles.slotsGrid}>
           {TIME_SLOTS.map((slot) => {
-            const isSelected = selectedSlot === slot;
+            const dateStr = selectedDate.toISOString().split('T')[0];
+            const isBooked = appointments.some(
+              (a) => a.date === dateStr && a.timeSlot === slot && a.status !== 'cancelled'
+            );
+            const isSelected = selectedSlot === slot && !isBooked;
+
             return (
               <TouchableOpacity
                 key={slot}
+                disabled={isBooked}
                 onPress={() => setSelectedSlot(slot)}
-                style={[styles.slotBtn, isSelected && styles.slotBtnSelected]}
+                style={[
+                  styles.slotBtn,
+                  isSelected && styles.slotBtnSelected,
+                  isBooked && styles.slotBtnBooked,
+                ]}
               >
                 <Clock
                   size={14}
-                  color={isSelected ? Colors.white : Colors.textSecondary}
+                  color={
+                    isBooked
+                      ? '#94a3b8'
+                      : isSelected
+                      ? Colors.white
+                      : Colors.textSecondary
+                  }
                 />
                 <Text
                   style={[
                     styles.slotText,
                     isSelected && styles.slotTextSelected,
+                    isBooked && styles.slotTextBooked,
                   ]}
                 >
                   {slot}
                 </Text>
+                {isBooked && (
+                  <View style={styles.bookedTag}>
+                    <Text style={styles.bookedTagText}>
+                      {language === 'ar' ? 'محجوز' : 'Booked'}
+                    </Text>
+                  </View>
+                )}
               </TouchableOpacity>
             );
           })}
@@ -522,6 +551,11 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.secondary,
     borderColor: Colors.secondary,
   },
+  slotBtnBooked: {
+    backgroundColor: '#f1f5f9',
+    borderColor: '#e2e8f0',
+    opacity: 0.65,
+  },
   slotText: {
     fontSize: 11,
     color: Colors.textPrimary,
@@ -530,6 +564,22 @@ const styles = StyleSheet.create({
   slotTextSelected: {
     color: Colors.white,
     fontWeight: '700',
+  },
+  slotTextBooked: {
+    color: '#94a3b8',
+    textDecorationLine: 'line-through',
+  },
+  bookedTag: {
+    backgroundColor: '#fee2e2',
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    borderRadius: 4,
+    marginLeft: 4,
+  },
+  bookedTagText: {
+    fontSize: 9,
+    fontWeight: '700',
+    color: '#dc2626',
   },
   summaryCard: {
     backgroundColor: Colors.primaryLight,

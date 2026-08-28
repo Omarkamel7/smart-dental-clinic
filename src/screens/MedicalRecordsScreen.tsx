@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -6,7 +6,9 @@ import {
   TouchableOpacity,
   StyleSheet,
   Image,
+  RefreshControl,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import {
   FileText,
   Clock,
@@ -29,7 +31,26 @@ interface MedicalRecordsScreenProps {
 export const MedicalRecordsScreen: React.FC<MedicalRecordsScreenProps> = ({
   navigation,
 }) => {
-  const { t, language, currentUser, complaints, isRTL } = useApp();
+  const { t, language, currentUser, complaints, isRTL, refreshClinicData } = useApp();
+
+  const [refreshing, setRefreshing] = useState(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      refreshClinicData().catch((e) => console.warn('MedicalRecords focus refresh error:', e));
+    }, [])
+  );
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await refreshClinicData();
+    } catch (e) {
+      console.warn('MedicalRecords onRefresh error:', e);
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   const myComplaints = complaints.filter(
     (c) => c.patientId === currentUser.id
@@ -83,7 +104,18 @@ export const MedicalRecordsScreen: React.FC<MedicalRecordsScreenProps> = ({
   };
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+    <ScrollView
+      style={styles.container}
+      showsVerticalScrollIndicator={false}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          colors={[Colors.primary]}
+          tintColor={Colors.primary}
+        />
+      }
+    >
       {/* Patient Profile Quick Summary */}
       <View style={styles.profileBox}>
         <View style={styles.avatar}>
