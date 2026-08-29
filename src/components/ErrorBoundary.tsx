@@ -33,7 +33,7 @@ class ErrorBoundary extends Component<Props, State> {
         <SafeAreaView style={styles.container}>
           <View style={styles.content}>
             <Image 
-              source={require('../../assets/images/logo.png')} // Adjust path if needed
+              source={require('../../assets/app_logo.png')}
               style={styles.logo}
               resizeMode="contain"
             />
