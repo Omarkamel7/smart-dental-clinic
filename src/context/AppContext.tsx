@@ -145,12 +145,25 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (savedMessages) {
         setMessages(JSON.parse(savedMessages));
       }
+      const savedRole = await AsyncStorage.getItem('@dental_app_role');
+      if (savedRole === 'doctor' || savedRole === 'patient') {
+        setRoleState(savedRole);
+      }
+      const savedUser = await AsyncStorage.getItem('@dental_app_current_user');
+      if (savedUser) {
+        try {
+          const parsedUser = JSON.parse(savedUser);
+          if (parsedUser && parsedUser.id) {
+            setCurrentUser(parsedUser);
+          }
+        } catch (_) {}
+      }
       const savedPatient = await AsyncStorage.getItem('@dental_app_patient_profile');
       if (savedPatient) {
         try {
           const parsedPatient = JSON.parse(savedPatient);
           if (parsedPatient && parsedPatient.fullName) {
-            setCurrentUser(parsedPatient);
+            setCurrentUser((prev) => (prev.id ? prev : parsedPatient));
           }
         } catch (err) {}
       }
@@ -172,6 +185,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         setIsAuthenticated(true);
+        if (session.user.email?.toLowerCase().includes('karim@smartdental.com')) {
+          setRoleState('doctor');
+          AsyncStorage.setItem('@dental_app_role', 'doctor').catch(() => {});
+        }
         fetchRemoteProfile(session.user.id);
         fetchRemoteUserData();
       }
@@ -181,6 +198,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
         setIsAuthenticated(true);
+        if (session.user.email?.toLowerCase().includes('karim@smartdental.com')) {
+          setRoleState('doctor');
+          AsyncStorage.setItem('@dental_app_role', 'doctor').catch(() => {});
+        }
         fetchRemoteProfile(session.user.id);
         fetchRemoteUserData();
       } else {
@@ -350,20 +371,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         .single();
 
       if (data && !error) {
-        setRoleState(data.role as UserRole);
-        setCurrentUser((prev) => ({
-          ...prev,
+        const userRole = (data.role as UserRole) || 'patient';
+        setRoleState(userRole);
+        AsyncStorage.setItem('@dental_app_role', userRole).catch(() => {});
+        const updatedUser: UserProfile = {
+          ...currentUser,
           id: data.id,
           fullName: data.full_name,
           phone: data.phone,
-          role: data.role as UserRole,
+          role: userRole,
           medicalHistory: {
-            ...prev.medicalHistory,
-            hasDiabetes: data.has_diabetes,
-            hasHypertension: data.has_hypertension,
-            hasPenicillinAllergy: data.has_penicillin_allergy,
+            ...currentUser.medicalHistory,
+            hasDiabetes: data.has_diabetes || false,
+            hasHypertension: data.has_hypertension || false,
+            hasPenicillinAllergy: data.has_penicillin_allergy || false,
           },
-        }));
+        };
+        setCurrentUser(updatedUser);
+        AsyncStorage.setItem('@dental_app_current_user', JSON.stringify(updatedUser)).catch(() => {});
       }
     } catch (e) {
       console.warn('Fetch remote profile error:', e);
@@ -481,11 +506,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const setRole = (newRole: UserRole) => {
     setRoleState(newRole);
+    AsyncStorage.setItem('@dental_app_role', newRole).catch(() => {});
   };
 
   const updateUserProfile = async (profileUpdate: Partial<UserProfile>) => {
     const updated = { ...currentUser, ...profileUpdate };
     setCurrentUser(updated);
+    AsyncStorage.setItem('@dental_app_current_user', JSON.stringify(updated)).catch(() => {});
 
     if (isSupabaseConfigured && isAuthenticated) {
       try {
@@ -799,6 +826,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setIsAuthenticated(false);
     setRoleState('patient');
     setCurrentUser(DEFAULT_PATIENT);
+    await AsyncStorage.removeItem('@dental_app_role');
+    await AsyncStorage.removeItem('@dental_app_current_user');
   };
 
   const savePatientQuickProfile = async (fullName: string, phone: string) => {

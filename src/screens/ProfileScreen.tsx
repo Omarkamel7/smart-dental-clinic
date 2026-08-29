@@ -44,6 +44,7 @@ export const ProfileScreen: React.FC = () => {
     currentUser,
     updateUserProfile,
     clinicSettings,
+    signOut,
   } = useApp();
 
   const [loading, setLoading] = useState(false);
@@ -200,8 +201,8 @@ export const ProfileScreen: React.FC = () => {
 
           <TouchableOpacity
             style={[styles.doctorToolBtn, { backgroundColor: '#fee2e2', borderColor: '#fca5a5', marginTop: 6 }]}
-            onPress={() => {
-              setRole('patient');
+            onPress={async () => {
+              await signOut();
               Alert.alert(
                 language === 'ar' ? 'تم تسجيل الخروج' : 'Signed Out',
                 language === 'ar' ? 'تمت العودة إلى واجهة المستخدم العادية.' : 'Returned to patient view.'

@@ -93,6 +93,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ navigation }) => {
       }
 
       if (data.user) {
+        const isDoc = email.trim().toLowerCase() === 'karim@smartdental.com' || email.trim().toLowerCase().includes('doctor');
         // Fetch user profile from Supabase
         const { data: profile } = await supabase
           .from('profiles')
@@ -100,24 +101,26 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ navigation }) => {
           .eq('id', data.user.id)
           .single();
 
-        if (profile) {
-          const prof = profile as any;
-          setRole(prof.role as UserRole);
-          updateUserProfile({
-            id: prof.id,
-            fullName: prof.full_name,
-            phone: prof.phone,
-            medicalHistory: {
-              ...currentUser.medicalHistory,
-              hasDiabetes: prof.has_diabetes,
-              hasHypertension: prof.has_hypertension,
-              hasPenicillinAllergy: prof.has_penicillin_allergy,
-            },
-          });
-        }
+        let determinedRole: UserRole = (profile?.role as UserRole) || (isDoc ? 'doctor' : 'patient');
+        let determinedName = profile?.full_name || (isDoc ? 'د. كريم أبو بكر' : 'مستخدم');
+        let determinedPhone = profile?.phone || (isDoc ? '+20 100 000 0000' : '');
+
+        setRole(determinedRole);
+        await updateUserProfile({
+          id: data.user.id,
+          fullName: determinedName,
+          phone: determinedPhone,
+          role: determinedRole,
+          medicalHistory: {
+            ...currentUser.medicalHistory,
+            hasDiabetes: profile?.has_diabetes || false,
+            hasHypertension: profile?.has_hypertension || false,
+            hasPenicillinAllergy: profile?.has_penicillin_allergy || false,
+          },
+        });
 
         setLoading(false);
-        if (navigation.canGoBack()) {
+        if (navigation && typeof navigation.canGoBack === 'function' && navigation.canGoBack()) {
           navigation.goBack();
         }
         return;
