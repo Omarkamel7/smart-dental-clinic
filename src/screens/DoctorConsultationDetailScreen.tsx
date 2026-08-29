@@ -6,9 +6,12 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  Image,
   Alert,
+  Linking,
+  ActivityIndicator,
 } from 'react-native';
+import { Image } from 'expo-image';
+import { successTap } from '../utils/haptics';
 import {
   ShieldAlert,
   Clock,
@@ -23,7 +26,7 @@ import {
 import { Colors, Shadows } from '../constants/theme';
 import { useApp } from '../context/AppContext';
 import { FDI_TEETH, SYMPTOMS_LIST, DEFAULT_SERVICES } from '../constants/dentalData';
-import { DentalChart } from '../components/DentalChart';
+import DentalChart from '../components/DentalChart';
 import { AudioRecorder } from '../components/AudioRecorder';
 import { UrgencyLevel } from '../types';
 
@@ -63,6 +66,7 @@ export const DoctorConsultationDetailScreen: React.FC<
     complaint?.diagnosis?.suggestedServiceId || 'root_canal'
   );
   const [requireVisit, setRequireVisit] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!complaint) {
     return (
@@ -72,7 +76,7 @@ export const DoctorConsultationDetailScreen: React.FC<
     );
   }
 
-  const handleSendDiagnosis = () => {
+  const handleSendDiagnosis = async () => {
     if (!provisionalCondition.trim()) {
       alert(
         language === 'ar'
@@ -82,32 +86,42 @@ export const DoctorConsultationDetailScreen: React.FC<
       return;
     }
 
-    submitDiagnosis(complaint.id, {
-      diagnosedAt: new Date().toISOString(),
-      doctorName: 'د. كريم أبو بكر',
-      provisionalConditionAr: provisionalCondition,
-      provisionalConditionEn: provisionalCondition,
-      urgencyLevel,
-      firstAidInstructionsAr: firstAidInstructions,
-      firstAidInstructionsEn: firstAidInstructions,
-      recommendedMedicationsAr: medications,
-      recommendedMedicationsEn: medications,
-      suggestedServiceId,
-      requireClinicVisit: requireVisit,
-    });
+    setIsSubmitting(true);
 
-    Alert.alert(
-      language === 'ar' ? 'تم إصدار التشخيص' : 'Diagnosis Submitted',
-      language === 'ar'
-        ? 'تم إرسال تقرير التشخيص المبدئي والإرشادات للمريض بنجاح.'
-        : 'Preliminary diagnosis report sent to patient.',
-      [
-        {
-          text: language === 'ar' ? 'حسناً' : 'OK',
-          onPress: () => navigation.goBack(),
-        },
-      ]
-    );
+    try {
+      await submitDiagnosis(complaint.id, {
+        diagnosedAt: new Date().toISOString(),
+        doctorName: 'د. كريم أبو بكر',
+        provisionalConditionAr: provisionalCondition,
+        provisionalConditionEn: provisionalCondition,
+        urgencyLevel,
+        firstAidInstructionsAr: firstAidInstructions,
+        firstAidInstructionsEn: firstAidInstructions,
+        recommendedMedicationsAr: medications,
+        recommendedMedicationsEn: medications,
+        suggestedServiceId,
+        requireClinicVisit: requireVisit,
+      });
+
+      successTap();
+
+      Alert.alert(
+        language === 'ar' ? 'تم إصدار التشخيص' : 'Diagnosis Submitted',
+        language === 'ar'
+          ? 'تم إرسال تقرير التشخيص المبدئي والإرشادات للمريض بنجاح.'
+          : 'Preliminary diagnosis report sent to patient.',
+        [
+          {
+            text: language === 'ar' ? 'حسناً' : 'OK',
+            onPress: () => navigation.goBack(),
+          },
+        ]
+      );
+    } catch (e) {
+      console.warn('submit error', e);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -119,19 +133,30 @@ export const DoctorConsultationDetailScreen: React.FC<
             <Text style={styles.patientName}>{complaint.patientName}</Text>
             <Text style={styles.patientPhone}>{complaint.patientPhone}</Text>
           </View>
-          <TouchableOpacity
-            style={styles.chatActionBtn}
-            onPress={() =>
-              navigation.navigate('Chat', {
-                consultationId: complaint.id,
-              })
-            }
-          >
-            <MessageCircle size={16} color={Colors.white} />
-            <Text style={styles.chatActionBtnText}>
-              {language === 'ar' ? 'محادثة المريض' : 'Chat'}
-            </Text>
-          </TouchableOpacity>
+          <View style={styles.headerActions}>
+            <TouchableOpacity
+              style={styles.actionBtnIcon}
+              onPress={() => Linking.openURL(`tel:${complaint.patientPhone}`)}
+            >
+              <Text style={styles.iconText}>📞</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.actionBtnIcon}
+              onPress={() => Linking.openURL(`whatsapp://send?phone=${complaint.patientPhone}`)}
+            >
+              <Text style={styles.iconText}>💬</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.chatActionBtn}
+              onPress={() =>
+                navigation.navigate('Chat', {
+                  consultationId: complaint.id,
+                })
+              }
+            >
+              <MessageCircle size={16} color={Colors.white} />
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Medical History Alerts */}
@@ -224,8 +249,14 @@ export const DoctorConsultationDetailScreen: React.FC<
           <View style={{ marginTop: 10 }}>
             <Text style={styles.descTitle}>صور السن المرفقة:</Text>
             <ScrollView horizontal style={styles.imagesScroll}>
-              {complaint.photoUris.map((uri, i) => (
-                <Image key={i} source={{ uri }} style={styles.casePhoto} />
+              {complaint.photoUris.map((uri) => (
+                <Image
+                  key={uri}
+                  source={{ uri }}
+                  style={styles.casePhoto}
+                  cachePolicy="memory-disk"
+                  placeholder={{ blurhash: 'LGF5]+Yk^6#M@-5c' }}
+                />
               ))}
             </ScrollView>
           </View>
@@ -331,11 +362,18 @@ export const DoctorConsultationDetailScreen: React.FC<
         <TouchableOpacity
           style={styles.sendDiagnosisBtn}
           onPress={handleSendDiagnosis}
+          disabled={isSubmitting}
         >
-          <Send size={18} color={Colors.white} />
-          <Text style={styles.sendDiagnosisBtnText}>
-            {t.sendDiagnosisToPatient}
-          </Text>
+          {isSubmitting ? (
+            <ActivityIndicator color={Colors.white} />
+          ) : (
+            <>
+              <Send size={18} color={Colors.white} />
+              <Text style={styles.sendDiagnosisBtnText}>
+                {t.sendDiagnosisToPatient}
+              </Text>
+            </>
+          )}
         </TouchableOpacity>
       </View>
 
@@ -384,17 +422,29 @@ const styles = StyleSheet.create({
   chatActionBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    justifyContent: 'center',
+    width: 36,
+    height: 36,
     backgroundColor: Colors.primary,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 10,
+    borderRadius: 18,
     ...Shadows.sm,
   },
-  chatActionBtnText: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: Colors.white,
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  actionBtnIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#f1f5f9',
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...Shadows.sm,
+  },
+  iconText: {
+    fontSize: 16,
   },
   alertsBar: {
     flexDirection: 'row',

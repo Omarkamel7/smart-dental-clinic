@@ -124,6 +124,7 @@ export interface ChatMessage {
   audioUri?: string;
   imageUri?: string;
   timestamp: string;
+  status?: 'sending' | 'sent' | 'failed';
 }
 
 export interface ClinicSettings {

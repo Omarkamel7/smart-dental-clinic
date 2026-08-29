@@ -1,9 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, memo } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { FDI_TEETH } from '../constants/dentalData';
 import { ToothInfo } from '../types';
 import { Colors, Shadows } from '../constants/theme';
 import { useApp } from '../context/AppContext';
+import { lightTap } from '../utils/haptics';
+
+const FDI_MAP = new Map<number, ToothInfo>(FDI_TEETH.map((t) => [t.fdiNumber, t]));
 
 interface DentalChartProps {
   selectedTeeth: number[];
@@ -12,7 +15,7 @@ interface DentalChartProps {
   highlightedTeeth?: number[];
 }
 
-export const DentalChart: React.FC<DentalChartProps> = ({
+export const DentalChartComponent: React.FC<DentalChartProps> = ({
   selectedTeeth,
   onToggleTooth,
   readOnly = false,
@@ -23,7 +26,7 @@ export const DentalChart: React.FC<DentalChartProps> = ({
 
   const renderToothButton = (toothNum: number) => {
     const isSelected = selectedTeeth.includes(toothNum);
-    const toothInfo = FDI_TEETH.find((t) => t.fdiNumber === toothNum);
+    const toothInfo = FDI_MAP.get(toothNum);
     const isMolar = toothInfo?.type === 'molar' || toothInfo?.type === 'wisdom';
     const isPremolar = toothInfo?.type === 'premolar';
     const isCanine = toothInfo?.type === 'canine';
@@ -32,7 +35,10 @@ export const DentalChart: React.FC<DentalChartProps> = ({
       <TouchableOpacity
         key={toothNum}
         disabled={readOnly}
-        onPress={() => onToggleTooth(toothNum)}
+        onPress={() => {
+          lightTap();
+          onToggleTooth(toothNum);
+        }}
         style={[
           styles.toothButton,
           {
@@ -48,7 +54,7 @@ export const DentalChart: React.FC<DentalChartProps> = ({
           {toothNum}
         </Text>
         <Text style={[styles.toothTypeLabel, isSelected && styles.toothTypeLabelSelected]}>
-          {isMolar ? 'طاحن' : isPremolar ? 'ضاحك' : isCanine ? 'ناب' : 'قاطع'}
+          {isMolar ? 'ط·ط§ط­ظ†' : isPremolar ? 'ط¶ط§ط­ظƒ' : isCanine ? 'ظ†ط§ط¨' : 'ظ‚ط§ط·ط¹'}
         </Text>
         <View
           style={[
@@ -78,7 +84,7 @@ export const DentalChart: React.FC<DentalChartProps> = ({
               activeJaw === 'upper' && styles.jawTabBtnTextActive,
             ]}
           >
-            ⬆️ {language === 'ar' ? 'الفك العلوي (Upper)' : 'Upper Jaw'}
+            â¬†ï¸ڈ {language === 'ar' ? 'ط§ظ„ظپظƒ ط§ظ„ط¹ظ„ظˆظٹ (Upper)' : 'Upper Jaw'}
           </Text>
         </TouchableOpacity>
 
@@ -92,7 +98,7 @@ export const DentalChart: React.FC<DentalChartProps> = ({
               activeJaw === 'lower' && styles.jawTabBtnTextActive,
             ]}
           >
-            ⬇️ {language === 'ar' ? 'الفك السفلي (Lower)' : 'Lower Jaw'}
+            â¬‡ï¸ڈ {language === 'ar' ? 'ط§ظ„ظپظƒ ط§ظ„ط³ظپظ„ظٹ (Lower)' : 'Lower Jaw'}
           </Text>
         </TouchableOpacity>
       </View>
@@ -100,16 +106,16 @@ export const DentalChart: React.FC<DentalChartProps> = ({
       {/* Anatomical Model Box */}
       <View style={styles.archBox}>
         <View style={styles.directionHeader}>
-          <Text style={styles.directionText}>👉 يمين المريض</Text>
+          <Text style={styles.directionText}>ًں‘‰ ظٹظ…ظٹظ† ط§ظ„ظ…ط±ظٹط¶</Text>
           <Text style={styles.archTitle}>
-            {activeJaw === 'upper' ? 'قوس الفك العلوي التشريحي' : 'قوس الفك السفلي التشريحي'}
+            {activeJaw === 'upper' ? 'ظ‚ظˆط³ ط§ظ„ظپظƒ ط§ظ„ط¹ظ„ظˆظٹ ط§ظ„طھط´ط±ظٹط­ظٹ' : 'ظ‚ظˆط³ ط§ظ„ظپظƒ ط§ظ„ط³ظپظ„ظٹ ط§ظ„طھط´ط±ظٹط­ظٹ'}
           </Text>
-          <Text style={styles.directionText}>يسار المريض 👈</Text>
+          <Text style={styles.directionText}>ظٹط³ط§ط± ط§ظ„ظ…ط±ظٹط¶ ًں‘ˆ</Text>
         </View>
 
-        {/* 1. Front Incisors Row (الأسنان الأمامية) */}
+        {/* 1. Front Incisors Row (ط§ظ„ط£ط³ظ†ط§ظ† ط§ظ„ط£ظ…ط§ظ…ظٹط©) */}
         <View style={styles.clusterTitleBox}>
-          <Text style={styles.clusterTitleText}>القواطع والأسنان الأمامية</Text>
+          <Text style={styles.clusterTitleText}>ط§ظ„ظ‚ظˆط§ط·ط¹ ظˆط§ظ„ط£ط³ظ†ط§ظ† ط§ظ„ط£ظ…ط§ظ…ظٹط©</Text>
         </View>
         <View style={styles.teethClusterRow}>
           {activeJaw === 'upper' ? (
@@ -131,9 +137,9 @@ export const DentalChart: React.FC<DentalChartProps> = ({
           )}
         </View>
 
-        {/* 2. Canines & Premolars Row (الأنياب والضواحك) */}
+        {/* 2. Canines & Premolars Row (ط§ظ„ط£ظ†ظٹط§ط¨ ظˆط§ظ„ط¶ظˆط§ط­ظƒ) */}
         <View style={styles.clusterTitleBox}>
-          <Text style={styles.clusterTitleText}>الأنياب والضواحك الجانبية</Text>
+          <Text style={styles.clusterTitleText}>ط§ظ„ط£ظ†ظٹط§ط¨ ظˆط§ظ„ط¶ظˆط§ط­ظƒ ط§ظ„ط¬ط§ظ†ط¨ظٹط©</Text>
         </View>
         <View style={styles.teethClusterRow}>
           {activeJaw === 'upper' ? (
@@ -159,9 +165,9 @@ export const DentalChart: React.FC<DentalChartProps> = ({
           )}
         </View>
 
-        {/* 3. Molars & Wisdom Row (الضروس الخلفية وضرس العقل) */}
+        {/* 3. Molars & Wisdom Row (ط§ظ„ط¶ط±ظˆط³ ط§ظ„ط®ظ„ظپظٹط© ظˆط¶ط±ط³ ط§ظ„ط¹ظ‚ظ„) */}
         <View style={styles.clusterTitleBox}>
-          <Text style={styles.clusterTitleText}>الضروس الخلفية وضرس العقل</Text>
+          <Text style={styles.clusterTitleText}>ط§ظ„ط¶ط±ظˆط³ ط§ظ„ط®ظ„ظپظٹط© ظˆط¶ط±ط³ ط§ظ„ط¹ظ‚ظ„</Text>
         </View>
         <View style={styles.teethClusterRow}>
           {activeJaw === 'upper' ? (
@@ -191,7 +197,7 @@ export const DentalChart: React.FC<DentalChartProps> = ({
       {/* Selected Teeth Badges */}
       {selectedTeeth.length > 0 && (
         <View style={styles.selectedContainer}>
-          <Text style={styles.selectedTitle}>الأسنان المحددة في المجسم:</Text>
+          <Text style={styles.selectedTitle}>ط§ظ„ط£ط³ظ†ط§ظ† ط§ظ„ظ…ط­ط¯ط¯ط© ظپظٹ ط§ظ„ظ…ط¬ط³ظ…:</Text>
           <View style={styles.tagsContainer}>
             {selectedTeeth.map((num) => {
               const info = FDI_TEETH.find((t) => t.fdiNumber === num);
@@ -249,6 +255,21 @@ const styles = StyleSheet.create({
     padding: 12,
     alignItems: 'center',
     gap: 6,
+  },
+  toothLegendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  legendDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+  },
+  legendText: {
+    fontSize: 11,
+    color: Colors.textSecondary,
+    fontWeight: '600',
   },
   directionHeader: {
     flexDirection: 'row',
@@ -365,3 +386,5 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
   },
 });
+
+export default React.memo(DentalChartComponent);

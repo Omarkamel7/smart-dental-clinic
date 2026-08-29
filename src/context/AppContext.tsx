@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   UserProfile,
@@ -144,6 +144,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const savedMessages = await AsyncStorage.getItem('@dental_app_messages');
       if (savedMessages) {
         setMessages(JSON.parse(savedMessages));
+      }
+      const savedPatient = await AsyncStorage.getItem('@dental_app_patient_profile');
+      if (savedPatient) {
+        try {
+          const parsedPatient = JSON.parse(savedPatient);
+          if (parsedPatient && parsedPatient.fullName) {
+            setCurrentUser(parsedPatient);
+          }
+        } catch (err) {}
       }
     } catch (e) {
       console.warn('Error loading storage data:', e);
@@ -913,170 +922,199 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return { consultation: newComplaint, consultationId: newId };
   };
 
-  // Derive Doctor Inbox items from both complaints and direct chat messages
-  const messageThreads = new Map<string, ChatMessage[]>();
-  messages.forEach((m) => {
-    const cId = m.consultationId || 'general';
-    if (!messageThreads.has(cId)) {
-      messageThreads.set(cId, []);
-    }
-    messageThreads.get(cId)!.push(m);
-  });
-
-  const inboxList: DoctorInboxItem[] = [];
-  const processedConsultationIds = new Set<string>();
-
-  // 1. Add all structured complaints
-  complaints.forEach((comp) => {
-    processedConsultationIds.add(comp.id);
-    const thread = messageThreads.get(comp.id) || [];
-    const lastMsg = thread.length > 0 ? thread[thread.length - 1] : null;
-
-    inboxList.push({
-      consultationId: comp.id,
-      patientId: comp.patientId,
-      patientName: comp.patientName || 'مريض',
-      patientPhone: comp.patientPhone || '',
-      lastMessage: lastMsg ? lastMsg.text : comp.description || 'طلب استشارة جديد',
-      lastMessageTime: lastMsg
-        ? new Date(lastMsg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-        : new Date(comp.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      urgencyLevel: comp.urgencyLevel,
-      status: comp.status,
-      createdAt: comp.createdAt,
-      photoUrls: comp.photoUris || [],
-      description: comp.description || '',
-      symptoms: comp.symptoms || [],
+  // Derive Doctor Inbox items from both complaints and direct chat messages with useMemo
+  const doctorInbox: DoctorInboxItem[] = useMemo(() => {
+    const messageThreads = new Map<string, ChatMessage[]>();
+    messages.forEach((m) => {
+      const cId = m.consultationId || 'general';
+      if (!messageThreads.has(cId)) {
+        messageThreads.set(cId, []);
+      }
+      messageThreads.get(cId)!.push(m);
     });
-  });
 
-  // 2. Add any standalone patient chat messages that were sent directly
-  messageThreads.forEach((thread, cId) => {
-    if (!processedConsultationIds.has(cId)) {
-      processedConsultationIds.add(cId);
-      const lastMsg = thread[thread.length - 1];
-      const patientMsg = thread.find((m) => m.senderRole === 'patient') || lastMsg;
+    const inboxList: DoctorInboxItem[] = [];
+    const processedConsultationIds = new Set<string>();
+
+    // 1. Add all structured complaints
+    complaints.forEach((comp) => {
+      processedConsultationIds.add(comp.id);
+      const thread = messageThreads.get(comp.id) || [];
+      const lastMsg = thread.length > 0 ? thread[thread.length - 1] : null;
 
       inboxList.push({
-        consultationId: cId,
-        patientId: patientMsg?.senderId || 'patient',
-        patientName: patientMsg?.senderName || 'مريض (محادثة مباشرة)',
-        patientPhone: '',
-        lastMessage: lastMsg ? lastMsg.text : 'محادثة مباشرة',
+        consultationId: comp.id,
+        patientId: comp.patientId,
+        patientName: comp.patientName || 'مريض',
+        patientPhone: comp.patientPhone || '',
+        lastMessage: lastMsg ? lastMsg.text : comp.description || 'طلب استشارة جديد',
         lastMessageTime: lastMsg
           ? new Date(lastMsg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-          : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        urgencyLevel: 'moderate',
-        status: 'pending',
-        createdAt: lastMsg?.timestamp || new Date().toISOString(),
-        photoUrls: thread.filter((m) => !!m.imageUri).map((m) => m.imageUri!),
-        description: 'محادثة واستفسار مباشر مع دكتور كريم',
-        symptoms: [],
+          : new Date(comp.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        urgencyLevel: comp.urgencyLevel,
+        status: comp.status,
+        createdAt: comp.createdAt,
+        photoUrls: comp.photoUris || [],
+        description: comp.description || '',
+        symptoms: comp.symptoms || [],
       });
-    }
-  });
+    });
 
-  const doctorInbox: DoctorInboxItem[] = inboxList;
+    // 2. Add any standalone patient chat messages that were sent directly
+    messageThreads.forEach((thread, cId) => {
+      if (!processedConsultationIds.has(cId)) {
+        processedConsultationIds.add(cId);
+        const lastMsg = thread[thread.length - 1];
+        const patientMsg = thread.find((m) => m.senderRole === 'patient') || lastMsg;
 
-  const sendMessage = async (
-    consultationId: string,
-    text: string,
-    audioUri?: string,
-    imageUri?: string
-  ) => {
-    const msgId = generateUUID();
-    const validConsultationId = isValidUUID(consultationId) ? consultationId : (complaints[0]?.id || generateUUID());
-    const validSenderId = role === 'doctor'
-      ? (isValidUUID(currentUser.id) ? currentUser.id : generateUUID())
-      : (isValidUUID(currentUser.id) ? currentUser.id : generateUUID());
-
-    const newMsg: ChatMessage = {
-      id: msgId,
-      consultationId: validConsultationId,
-      senderId: validSenderId,
-      senderName: role === 'doctor' ? 'د. كريم أبو بكر' : (currentUser.fullName || 'المريض'),
-      senderRole: role,
-      text,
-      audioUri,
-      imageUri,
-      timestamp: new Date().toISOString(),
-    };
-
-    const updated = [...messages, newMsg];
-    setMessages(updated);
-    await AsyncStorage.setItem('@dental_app_messages', JSON.stringify(updated));
-
-    if (isSupabaseConfigured) {
-      try {
-        console.log('[Supabase] Inserting message to database:', {
-          id: msgId,
-          consultation_id: validConsultationId,
-          sender_id: validSenderId,
-          role,
-          text,
+        inboxList.push({
+          consultationId: cId,
+          patientId: patientMsg?.senderId || 'patient',
+          patientName: patientMsg?.senderName || 'مريض (محادثة مباشرة)',
+          patientPhone: '',
+          lastMessage: lastMsg ? lastMsg.text : 'محادثة مباشرة',
+          lastMessageTime: lastMsg
+            ? new Date(lastMsg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          urgencyLevel: 'moderate',
+          status: 'pending',
+          createdAt: lastMsg?.timestamp || new Date().toISOString(),
+          photoUrls: thread.filter((m) => !!m.imageUri).map((m) => m.imageUri!),
+          description: 'محادثة واستفسار مباشر مع دكتور كريم',
+          symptoms: [],
         });
-
-        const { error } = await supabase.from('messages').insert({
-          id: msgId,
-          consultation_id: validConsultationId,
-          sender_id: validSenderId,
-          sender_role: role,
-          sender_name: role === 'doctor' ? 'د. كريم أبو بكر' : (currentUser.fullName || 'المريض'),
-          text,
-          image_url: imageUri || null,
-          audio_url: audioUri || null,
-        });
-
-        if (error) {
-          console.error('[Supabase] Send message error from Supabase:', error);
-        } else {
-          console.log('[Supabase] Message successfully inserted to Supabase:', msgId);
-        }
-      } catch (err) {
-        console.error('[Supabase] Send message exception:', err);
       }
-    }
-  };
+    });
+
+    return inboxList;
+  }, [complaints, messages]);
+
+  const sendMessage = useCallback(
+    async (
+      consultationId: string,
+      text: string,
+      audioUri?: string,
+      imageUri?: string
+    ) => {
+      const msgId = generateUUID();
+      const validConsultationId = isValidUUID(consultationId) ? consultationId : (complaints[0]?.id || generateUUID());
+      const validSenderId = isValidUUID(currentUser.id) ? currentUser.id : generateUUID();
+
+      // 1. Optimistic Message (shown immediately with status 'sending')
+      const newMsg: ChatMessage = {
+        id: msgId,
+        consultationId: validConsultationId,
+        senderId: validSenderId,
+        senderName: role === 'doctor' ? 'د. كريم أبو بكر' : (currentUser.fullName || 'المريض'),
+        senderRole: role,
+        text,
+        audioUri,
+        imageUri,
+        timestamp: new Date().toISOString(),
+        status: 'sending',
+      };
+
+      setMessages((prev) => {
+        const next = [...prev, newMsg];
+        AsyncStorage.setItem('@dental_app_messages', JSON.stringify(next)).catch(() => {});
+        return next;
+      });
+
+      if (isSupabaseConfigured) {
+        try {
+          const { error } = await supabase.from('messages').insert({
+            id: msgId,
+            consultation_id: validConsultationId,
+            sender_id: validSenderId,
+            sender_role: role,
+            sender_name: role === 'doctor' ? 'د. كريم أبو بكر' : (currentUser.fullName || 'المريض'),
+            text,
+            image_url: imageUri || null,
+            audio_url: audioUri || null,
+          });
+
+          if (error) {
+            console.error('[Supabase] Send message error:', error);
+            setMessages((prev) =>
+              prev.map((m) => (m.id === msgId ? { ...m, status: 'failed' } : m))
+            );
+          } else {
+            setMessages((prev) =>
+              prev.map((m) => (m.id === msgId ? { ...m, status: 'sent' } : m))
+            );
+          }
+        } catch (err) {
+          console.error('[Supabase] Send message exception:', err);
+          setMessages((prev) =>
+            prev.map((m) => (m.id === msgId ? { ...m, status: 'failed' } : m))
+          );
+        }
+      } else {
+        setMessages((prev) =>
+          prev.map((m) => (m.id === msgId ? { ...m, status: 'sent' } : m))
+        );
+      }
+    },
+    [complaints, currentUser.id, currentUser.fullName, role]
+  );
 
   const t = translations[language];
   const isRTL = language === 'ar';
 
+  const contextValue = useMemo(
+    () => ({
+      language,
+      setLanguage,
+      role,
+      setRole,
+      currentUser,
+      updateUserProfile,
+      savePatientQuickProfile,
+      complaints,
+      addComplaint,
+      createConsultationWithChat,
+      doctorInbox,
+      submitDiagnosis,
+      appointments,
+      bookAppointment,
+      cancelAppointment,
+      clinicSettings,
+      updateClinicSettings,
+      services,
+      addService,
+      updateService,
+      deleteService,
+      portfolioCases,
+      addPortfolioCase,
+      deletePortfolioCase,
+      messages,
+      sendMessage,
+      refreshClinicData,
+      signOut,
+      isAuthenticated,
+      t,
+      isRTL,
+    }),
+    [
+      language,
+      role,
+      currentUser,
+      complaints,
+      doctorInbox,
+      appointments,
+      clinicSettings,
+      services,
+      portfolioCases,
+      messages,
+      sendMessage,
+      isAuthenticated,
+      t,
+      isRTL,
+    ]
+  );
+
   return (
-    <AppContext.Provider
-      value={{
-        language,
-        setLanguage,
-        role,
-        setRole,
-        currentUser,
-        updateUserProfile,
-        savePatientQuickProfile,
-        complaints,
-        addComplaint,
-        createConsultationWithChat,
-        doctorInbox,
-        submitDiagnosis,
-        appointments,
-        bookAppointment,
-        cancelAppointment,
-        clinicSettings,
-        updateClinicSettings,
-        services,
-        addService,
-        updateService,
-        deleteService,
-        portfolioCases,
-        addPortfolioCase,
-        deletePortfolioCase,
-        messages,
-        sendMessage,
-        refreshClinicData,
-        signOut,
-        isAuthenticated,
-        t,
-        isRTL,
-      }}
-    >
+    <AppContext.Provider value={contextValue}>
       {children}
     </AppContext.Provider>
   );

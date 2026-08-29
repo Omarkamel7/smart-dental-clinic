@@ -5,10 +5,11 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
-  Image,
   Alert,
   RefreshControl,
 } from 'react-native';
+import { Image } from 'expo-image';
+import { SkeletonConsultationCard } from '../components/SkeletonCard';
 import { useFocusEffect } from '@react-navigation/native';
 import {
   Stethoscope,
@@ -36,6 +37,7 @@ export const DoctorDashboardScreen: React.FC<DoctorDashboardScreenProps> = ({
   const { t, language, complaints, appointments, doctorInbox, setRole, isRTL, refreshClinicData } = useApp();
 
   const [refreshing, setRefreshing] = useState(false);
+  const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'diagnosed'>('all');
 
   useFocusEffect(
     useCallback(() => {
@@ -58,6 +60,12 @@ export const DoctorDashboardScreen: React.FC<DoctorDashboardScreenProps> = ({
   const diagnosedComplaints = complaints.filter(
     (c) => c.status === 'diagnosed' || c.status === 'appointment_booked'
   );
+
+  const filteredComplaints = complaints.filter((c) => {
+    if (activeTab === 'pending') return c.status === 'pending';
+    if (activeTab === 'diagnosed') return c.status === 'diagnosed' || c.status === 'appointment_booked';
+    return true;
+  });
 
   const getUrgencyBadge = (urgency: string) => {
     switch (urgency) {
@@ -102,6 +110,8 @@ export const DoctorDashboardScreen: React.FC<DoctorDashboardScreenProps> = ({
           <Image
             source={require('../../assets/doctor_clinic.jpg')}
             style={styles.doctorBannerAvatar}
+            cachePolicy="memory-disk"
+            placeholder={{ blurhash: 'LGF5]+Yk^6#M@-5c' }}
           />
           <View style={styles.bannerText}>
             <Text style={styles.bannerTitle}>{t.doctorDashboardTitle}</Text>
@@ -270,7 +280,25 @@ export const DoctorDashboardScreen: React.FC<DoctorDashboardScreenProps> = ({
         <Text style={styles.sectionTitle}>{t.incomingComplaints}</Text>
       </View>
 
-      {complaints.length === 0 ? (
+      <View style={styles.tabsContainer}>
+        <TouchableOpacity style={[styles.tab, activeTab === 'all' && styles.activeTab]} onPress={() => setActiveTab('all')}>
+          <Text style={[styles.tabText, activeTab === 'all' && styles.activeTabText]}>{language === 'ar' ? 'الكل' : 'All'}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={[styles.tab, activeTab === 'pending' && styles.activeTab]} onPress={() => setActiveTab('pending')}>
+          <Text style={[styles.tabText, activeTab === 'pending' && styles.activeTabText]}>{language === 'ar' ? 'قيد الانتظار ⏳' : 'Pending ⏳'}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={[styles.tab, activeTab === 'diagnosed' && styles.activeTab]} onPress={() => setActiveTab('diagnosed')}>
+          <Text style={[styles.tabText, activeTab === 'diagnosed' && styles.activeTabText]}>{language === 'ar' ? 'تم التشخيص ✔️' : 'Diagnosed ✔️'}</Text>
+        </TouchableOpacity>
+      </View>
+
+      {refreshing && filteredComplaints.length === 0 ? (
+        <View style={{ gap: 12 }}>
+          <SkeletonConsultationCard />
+          <SkeletonConsultationCard />
+          <SkeletonConsultationCard />
+        </View>
+      ) : filteredComplaints.length === 0 ? (
         <View style={styles.emptyBox}>
           <CheckCircle size={36} color={Colors.routine} />
           <Text style={styles.emptyText}>
@@ -278,7 +306,7 @@ export const DoctorDashboardScreen: React.FC<DoctorDashboardScreenProps> = ({
           </Text>
         </View>
       ) : (
-        complaints.map((item) => {
+        filteredComplaints.map((item) => {
           const urgency = getUrgencyBadge(item.urgencyLevel);
           const isPending = item.status === 'pending';
 
@@ -479,6 +507,31 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '800',
     color: Colors.textPrimary,
+  },
+  tabsContainer: {
+    flexDirection: 'row',
+    marginBottom: 12,
+    gap: 8,
+  },
+  tab: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  activeTab: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+  },
+  tabText: {
+    fontSize: 12,
+    color: Colors.textSecondary,
+    fontWeight: '600',
+  },
+  activeTabText: {
+    color: Colors.white,
   },
   emptyBox: {
     backgroundColor: Colors.surface,

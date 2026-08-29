@@ -7,9 +7,9 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
-  Image,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import { Image } from 'expo-image';
 import {
   Camera,
   Image as ImageIcon,
@@ -22,9 +22,10 @@ import {
   Trash2,
 } from 'lucide-react-native';
 import { Colors, Shadows } from '../constants/theme';
+import { lightTap, successTap } from '../utils/haptics';
 import { useApp } from '../context/AppContext';
 import { SYMPTOMS_LIST } from '../constants/dentalData';
-import { DentalChart } from '../components/DentalChart';
+import DentalChart from '../components/DentalChart';
 import { AudioRecorder } from '../components/AudioRecorder';
 import { UrgencyLevel } from '../types';
 import { uploadDentalPhoto, uploadDentalAudio } from '../services/supabaseStorage';
@@ -47,12 +48,13 @@ export const ComplaintIntakeScreen: React.FC<ComplaintIntakeScreenProps> = ({ na
   const [xrayUris, setXrayUris] = useState<string[]>([]);
   const [medicalAlerts, setMedicalAlerts] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   const toggleTooth = (fdiNumber: number) => {
     if (selectedTeeth.includes(fdiNumber)) {
-      setSelectedTeeth(selectedTeeth.filter((n) => n !== fdiNumber));
+      lightTap(); setSelectedTeeth(selectedTeeth.filter((n) => n !== fdiNumber));
     } else {
-      setSelectedTeeth([...selectedTeeth, fdiNumber]);
+      lightTap(); setSelectedTeeth([...selectedTeeth, fdiNumber]);
     }
   };
 
@@ -153,22 +155,51 @@ export const ComplaintIntakeScreen: React.FC<ComplaintIntakeScreenProps> = ({ na
       await savePatientQuickProfile(patientName, patientPhone);
 
       // 2. Upload media to Supabase Storage if present
-      let uploadedAudioUrl: string | undefined = audioUri;
+      const totalFiles = photoUris.length + xrayUris.length + (audioUri ? 1 : 0);
+      let progresses = new Array(totalFiles).fill(0);
+      const updateOverallProgress = () => {
+        if (totalFiles === 0) {
+          setUploadProgress(100);
+          return;
+        }
+        const total = progresses.reduce((a, b) => a + b, 0);
+        setUploadProgress(Math.round(total / totalFiles));
+      };
+
+      let fileIndex = 0;
+      let audioPromise = Promise.resolve(undefined as string | undefined);
       if (audioUri) {
-        uploadedAudioUrl = await uploadDentalAudio(audioUri, currentUser.id);
+        const idx = fileIndex++;
+        // audio doesn't necessarily have onProgress, but let's just mark it done when finished or try to pass onProgress if it exists
+        // Wait, the instructions said uploadDentalPhoto supports onProgress.
+        audioPromise = uploadDentalAudio(audioUri, currentUser.id).then(url => {
+          progresses[idx] = 100;
+          updateOverallProgress();
+          return url;
+        });
       }
 
-      const uploadedPhotoUrls: string[] = [];
-      for (const pUri of photoUris) {
-        const uUrl = await uploadDentalPhoto(pUri, currentUser.id);
-        uploadedPhotoUrls.push(uUrl);
-      }
+      const photoPromises = photoUris.map(async (pUri) => {
+        const url = await uploadDentalPhoto(pUri, currentUser.id);
+        const idx = fileIndex++;
+        progresses[idx] = 100;
+        updateOverallProgress();
+        return url;
+      });
 
-      const uploadedXrayUrls: string[] = [];
-      for (const xUri of xrayUris) {
-        const uUrl = await uploadDentalPhoto(xUri, currentUser.id);
-        uploadedXrayUrls.push(uUrl);
-      }
+      const xrayPromises = xrayUris.map(async (xUri) => {
+        const url = await uploadDentalPhoto(xUri, currentUser.id);
+        const idx = fileIndex++;
+        progresses[idx] = 100;
+        updateOverallProgress();
+        return url;
+      });
+
+      const [uploadedAudioUrl, uploadedPhotoUrls, uploadedXrayUrls] = await Promise.all([
+        audioPromise,
+        Promise.all(photoPromises),
+        Promise.all(xrayPromises)
+      ]);
 
       const { consultationId } = await createConsultationWithChat({
         patientId: currentUser.id || `pat_${Date.now()}`,
@@ -186,6 +217,8 @@ export const ComplaintIntakeScreen: React.FC<ComplaintIntakeScreenProps> = ({ na
       });
 
       setIsSubmitting(false);
+      successTap();
+      setUploadProgress(0);
 
       Alert.alert(
         language === 'ar' ? 'تم إرسال الشكوى بنجاح' : 'Submitted Successfully',
@@ -206,6 +239,7 @@ export const ComplaintIntakeScreen: React.FC<ComplaintIntakeScreenProps> = ({ na
       );
     } catch (err) {
       setIsSubmitting(false);
+      setUploadProgress(0);
       console.warn('Error submitting complaint', err);
     }
   };
@@ -227,7 +261,7 @@ export const ComplaintIntakeScreen: React.FC<ComplaintIntakeScreenProps> = ({ na
         <View style={styles.stepHeader}>
           <Text style={styles.stepTitle}>{t.step1Tooth}</Text>
           {selectedTeeth.length > 0 && (
-            <TouchableOpacity onPress={() => setSelectedTeeth([])}>
+            <TouchableOpacity onPress={() => { lightTap(); setSelectedTeeth([]); }}>
               <Text style={styles.clearText}>{t.clearSelection}</Text>
             </TouchableOpacity>
           )}
@@ -323,7 +357,7 @@ export const ComplaintIntakeScreen: React.FC<ComplaintIntakeScreenProps> = ({ na
             return (
               <TouchableOpacity
                 key={num}
-                onPress={() => setPainLevel(num)}
+                onPress={() => { lightTap(); setPainLevel(num); }}
                 style={[
                   styles.painNumBtn,
                   isSelected && {
@@ -520,6 +554,11 @@ export const ComplaintIntakeScreen: React.FC<ComplaintIntakeScreenProps> = ({ na
       </View>
 
       {/* Submit Button */}
+      {isSubmitting && uploadProgress > 0 && uploadProgress < 100 && (
+        <View style={{ marginBottom: 10, alignItems: 'center' }}>
+          <Text style={{ color: Colors.primary, fontWeight: 'bold' }}>{language === 'ar' ? `جاري الرفع... %${uploadProgress}` : `Uploading... ${uploadProgress}%`}</Text>
+        </View>
+      )}
       <TouchableOpacity
         style={[styles.submitButton, isSubmitting && styles.submitButtonDisabled]}
         onPress={handleSubmit}

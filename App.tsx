@@ -285,14 +285,19 @@ const MainNavigation = () => {
   );
 };
 
+import ErrorBoundary from './src/components/ErrorBoundary';
+
 export default function App() {
   return (
     <SafeAreaProvider>
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
-      <AppProvider>
-        <MainNavigation />
-        <UpdateNotifierModal />
-      </AppProvider>
+      <ErrorBoundary>
+        <AppProvider>
+          <MainNavigation />
+          <UpdateNotifierModal />
+        </AppProvider>
+      </ErrorBoundary>
     </SafeAreaProvider>
   );
 }
+

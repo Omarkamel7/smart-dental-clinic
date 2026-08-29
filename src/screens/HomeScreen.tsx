@@ -6,9 +6,9 @@ import {
   TouchableOpacity,
   StyleSheet,
   Linking,
-  Image,
   RefreshControl,
 } from 'react-native';
+import { Image } from 'expo-image';
 import { useFocusEffect } from '@react-navigation/native';
 import {
   Stethoscope,
@@ -29,10 +29,13 @@ import { Colors, Shadows } from '../constants/theme';
 import { useApp } from '../context/AppContext';
 import { CLINIC_INFO, DEFAULT_SERVICES } from '../constants/dentalData';
 import { BeforeAfterSlider } from '../components/BeforeAfterSlider';
+import { SkeletonServiceCard } from '../components/SkeletonCard';
 
 interface HomeScreenProps {
   navigation: any;
 }
+
+const blurhash = '|rF?hV%2WCj[ayj[a|j[az_NaeWBj@ayfRayfQfQM{M|azj[azf6fQfQfQIpWXofj[ayj[j[fQayWCoeoeaya}j[ayfQa{oLj?j[WVj[ayayj[fQoff7azayj[ayj[j[ayofayayayj[fQj[ayayj[ayfjj[j[ayjuayj[';
 
 export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const {
@@ -125,13 +128,17 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
               <Image
                 source={{ uri: clinicSettings.avatarUrl }}
                 style={styles.doctorAvatar}
-                resizeMode="cover"
+                contentFit="cover"
+                placeholder={blurhash}
+                cachePolicy="memory-disk"
               />
             ) : (
               <Image
                 source={require('../../assets/doctor_clinic.jpg')}
                 style={styles.doctorAvatar}
-                resizeMode="cover"
+                contentFit="cover"
+                placeholder={blurhash}
+                cachePolicy="memory-disk"
               />
             )}
             <View style={styles.verifiedBadge}>
@@ -197,33 +204,11 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
           {/* Floating Ribbon Badge (Concept 1) */}
           {clinicSettings?.promoBadgeEnabled !== false && (
             <View
-              style={{
-                position: 'absolute',
-                top: -11,
-                [isRTL ? 'left' : 'right']: 16,
-                backgroundColor: '#f59e0b',
-                paddingHorizontal: 12,
-                paddingVertical: 3,
-                borderRadius: 14,
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: 4,
-                shadowColor: '#b45309',
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.4,
-                shadowRadius: 4,
-                elevation: 4,
-                zIndex: 10,
-              }}
+style={[styles.promoBadge, isRTL ? styles.left16 : styles.right16]}
             >
               <Sparkles size={11} color={Colors.white} />
               <Text
-                style={{
-                  color: Colors.white,
-                  fontSize: 11,
-                  fontWeight: '900',
-                  letterSpacing: 0.2,
-                }}
+style={styles.promoBadgeText}
               >
                 {(!clinicSettings?.promoBadgeText || clinicSettings.promoBadgeText === '✨ مجاناً لفترة محدودة' || clinicSettings.promoBadgeText === '✨ Free for a limited time')
                   ? t.promoBadgeDefault
@@ -267,33 +252,11 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
           {/* Floating Ribbon Badge for Chat (Concept 1) */}
           {clinicSettings?.promoBadgeEnabled !== false && (
             <View
-              style={{
-                position: 'absolute',
-                top: -11,
-                [isRTL ? 'left' : 'right']: 16,
-                backgroundColor: '#10b981',
-                paddingHorizontal: 12,
-                paddingVertical: 3,
-                borderRadius: 14,
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: 4,
-                shadowColor: '#047857',
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.4,
-                shadowRadius: 4,
-                elevation: 4,
-                zIndex: 10,
-              }}
+style={[styles.chatPromoBadge, isRTL ? styles.left16 : styles.right16]}
             >
               <Sparkles size={11} color={Colors.white} />
               <Text
-                style={{
-                  color: Colors.white,
-                  fontSize: 11,
-                  fontWeight: '900',
-                  letterSpacing: 0.2,
-                }}
+style={styles.promoBadgeText}
               >
                 {(!clinicSettings?.promoBadgeText || clinicSettings.promoBadgeText === '✨ مجاناً لفترة محدودة' || clinicSettings.promoBadgeText === '✨ Free for a limited time')
                   ? t.promoBadgeDefault
@@ -352,7 +315,15 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
       </View>
 
       <View style={styles.servicesGrid}>
-        {(services.length > 0 ? services : DEFAULT_SERVICES).map((service: any) => (
+        {refreshing && services.length === 0 ? (
+          <>
+            <SkeletonServiceCard />
+            <SkeletonServiceCard />
+            <SkeletonServiceCard />
+            <SkeletonServiceCard />
+          </>
+        ) : (
+          (services.length > 0 ? services : DEFAULT_SERVICES).map((service: any) => (
           <TouchableOpacity
             key={service.id}
             style={styles.serviceCard}
@@ -378,7 +349,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
               </Text>
             </View>
           </TouchableOpacity>
-        ))}
+        ))
+        )}
       </View>
 
       {/* Smile Makeover Before & After Gallery (Dynamic) */}
@@ -387,9 +359,13 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
       </View>
 
       <View style={styles.galleryContainer}>
-        {portfolioCases.map((item: any) => (
+        {refreshing && portfolioCases.length === 0 ? (
+          <SkeletonServiceCard />
+        ) : (
+          portfolioCases.map((item: any) => (
           <BeforeAfterSlider key={item.id} item={item} />
-        ))}
+        ))
+        )}
       </View>
 
       {/* About Dr. Karim Section with Dynamic Cover Photo */}
@@ -407,13 +383,17 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
             <Image
               source={{ uri: clinicSettings.coverImageUrl }}
               style={styles.doctorBioImage}
-              resizeMode="cover"
+              contentFit="cover"
+                placeholder={blurhash}
+                cachePolicy="memory-disk"
             />
           ) : (
             <Image
               source={require('../../assets/doctor_formal.jpg')}
               style={styles.doctorBioImage}
-              resizeMode="cover"
+              contentFit="cover"
+                placeholder={blurhash}
+                cachePolicy="memory-disk"
             />
           )}
           <View style={styles.doctorBioVerifiedBadge}>
@@ -924,4 +904,47 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     flex: 1,
   },
+
+  promoBadge: {
+    position: 'absolute',
+    top: -11,
+    backgroundColor: '#f59e0b',
+    paddingHorizontal: 12,
+    paddingVertical: 3,
+    borderRadius: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    shadowColor: '#b45309',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.4,
+    shadowRadius: 4,
+    elevation: 4,
+    zIndex: 10,
+  },
+  chatPromoBadge: {
+    position: 'absolute',
+    top: -11,
+    backgroundColor: '#10b981',
+    paddingHorizontal: 12,
+    paddingVertical: 3,
+    borderRadius: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    shadowColor: '#047857',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.4,
+    shadowRadius: 4,
+    elevation: 4,
+    zIndex: 10,
+  },
+  promoBadgeText: {
+    color: Colors.white,
+    fontSize: 11,
+    fontWeight: '900',
+    letterSpacing: 0.2,
+  },
+  left16: { left: 16 },
+  right16: { right: 16 },
 });

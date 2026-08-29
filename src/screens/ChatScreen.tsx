@@ -4,16 +4,19 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  FlatList,
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
-  Image,
   Modal,
   ActivityIndicator,
   Alert,
   RefreshControl,
+  ScrollView,
 } from 'react-native';
+import { Image } from 'expo-image';
+import { FlashList } from '@shopify/flash-list';
+import { lightTap } from '../utils/haptics';
+import { CANNED_RESPONSES } from '../constants/cannedResponses';
 import {
   Send,
   User,
@@ -78,7 +81,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ route, navigation }) => 
   const [nameError, setNameError] = useState<string | null>(null);
   const [phoneError, setPhoneError] = useState<string | null>(null);
 
-  const flatListRef = useRef<FlatList>(null);
+  const flatListRef = useRef<FlashList<ChatMessage>>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   const linkedComplaint = complaints.find((c) => c.id === consultationId);
@@ -115,7 +118,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ route, navigation }) => 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [consultationId, messages.length]);
+  }, [consultationId]);
 
   useEffect(() => {
     // Scroll to bottom when messages change
@@ -332,6 +335,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ route, navigation }) => 
     let imageToSend: string | undefined = undefined;
 
     try {
+      lightTap();
       if (selectedImageUri) {
         imageToSend = await uploadDentalPhoto(selectedImageUri, role);
       }
@@ -351,7 +355,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ route, navigation }) => 
     }
   };
 
-  const renderMessage = ({ item }: { item: ChatMessage }) => {
+  const renderMessage = useCallback(({ item }: { item: ChatMessage }) => {
     const isMe =
       (role === 'doctor' && item.senderRole === 'doctor') ||
       (role === 'patient' && item.senderRole === 'patient');
@@ -404,7 +408,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ route, navigation }) => 
               <Image
                 source={{ uri: item.imageUri }}
                 style={styles.messageImage}
-                resizeMode="cover"
+                contentFit="cover"
               />
             </TouchableOpacity>
           )}
@@ -496,12 +500,26 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ route, navigation }) => 
                 }
               )}
             </Text>
-            {isMe && <CheckCheck size={12} color="rgba(255,255,255,0.75)" />}
+            {isMe && (
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginLeft: 4 }}>
+                {item.status === 'sending' && <Text style={{ fontSize: 10 }}>⏳</Text>}
+                {item.status === 'sent' && <Text style={{ fontSize: 10 }}>✔️✔️</Text>}
+                {item.status === 'failed' && (
+                  <TouchableOpacity onPress={() => {/* Handle retry later if needed */}} style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <Text style={{ fontSize: 10 }}>❌ </Text>
+                    <Text style={{ fontSize: 10, color: 'white', textDecorationLine: 'underline' }}>Retry</Text>
+                  </TouchableOpacity>
+                )}
+                {(!item.status || (item.status !== 'sending' && item.status !== 'sent' && item.status !== 'failed')) && (
+                  <CheckCheck size={12} color="rgba(255,255,255,0.75)" />
+                )}
+              </View>
+            )}
           </View>
         </View>
       </View>
     );
-  };
+  }, [role, language, t, activeAudioUri, isPlayingAudio]);
 
   return (
     <KeyboardAvoidingView
@@ -591,7 +609,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ route, navigation }) => 
       )}
 
       {/* Messages List */}
-      <FlatList
+      <FlashList
         ref={flatListRef}
         data={consultationMessages}
         keyExtractor={(item) => item.id}
@@ -671,6 +689,36 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ route, navigation }) => 
             </TouchableOpacity>
           </View>
         </View>
+      )}
+
+      {/* Canned Responses for Doctor */}
+      {role === 'doctor' && (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={{ maxHeight: 40, borderTopWidth: 1, borderTopColor: Colors.border, backgroundColor: Colors.surface }}
+          contentContainerStyle={{ paddingHorizontal: 10, alignItems: 'center' }}
+        >
+          {CANNED_RESPONSES.map((res, idx) => {
+            const text = language === 'ar' ? res.textAr : res.textEn;
+            const title = language === 'ar' ? res.titleAr : res.titleEn;
+            return (
+              <TouchableOpacity
+                key={idx}
+                onPress={() => setInputMessage(text)}
+                style={{
+                  backgroundColor: Colors.primaryLight,
+                  paddingHorizontal: 12,
+                  paddingVertical: 6,
+                  borderRadius: 16,
+                  marginRight: 8,
+                }}
+              >
+                <Text style={{ fontSize: 12, color: Colors.primaryDark, fontWeight: '600' }}>{title}</Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
       )}
 
       {/* Bottom Input Action Bar */}
@@ -834,7 +882,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ route, navigation }) => 
             <Image
               source={{ uri: previewModalUri }}
               style={styles.modalFullImage}
-              resizeMode="contain"
+              contentFit="contain"
             />
           )}
         </View>

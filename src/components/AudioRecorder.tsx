@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { Audio } from 'expo-av';
 import { Mic, Square, Play, Pause, Trash2 } from 'lucide-react-native';
 import { Colors, Shadows } from '../constants/theme';
 import { useApp } from '../context/AppContext';
+import { lightTap, mediumTap, errorTap } from '../utils/haptics';
 
 interface AudioRecorderProps {
   audioUri?: string;
@@ -19,10 +20,23 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
   const [sound, setSound] = useState<Audio.Sound | null>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [recordDuration, setRecordDuration] = useState(0);
+  const [recordSeconds, setRecordSeconds] = useState(0);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (sound) {
+        sound.unloadAsync().catch(() => {});
+      }
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+    };
+  }, [sound]);
 
   const startRecording = async () => {
     try {
+      mediumTap();
       const permission = await Audio.requestPermissionsAsync();
       if (!permission.granted) {
         alert(language === 'ar' ? 'يرجى السماح بصلاحية الميكروفون' : 'Microphone permission required');
@@ -39,6 +53,10 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
       );
       setRecording(recording);
       setIsRecording(true);
+      setRecordSeconds(0);
+      timerRef.current = setInterval(() => {
+        setRecordSeconds((prev) => prev + 1);
+      }, 1000);
     } catch (err) {
       console.warn('Failed to start recording', err);
     }
@@ -47,6 +65,11 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
   const stopRecording = async () => {
     if (!recording) return;
     try {
+      mediumTap();
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
       await recording.stopAndUnloadAsync();
       const uri = recording.getURI();
       setRecording(null);
@@ -61,6 +84,7 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
 
   const playSound = async () => {
     if (!audioUri) return;
+    lightTap();
     try {
       if (sound) {
         await sound.playAsync();
@@ -84,6 +108,7 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
   };
 
   const pauseSound = async () => {
+    lightTap();
     if (sound) {
       await sound.pauseAsync();
       setIsPlaying(false);
@@ -91,12 +116,19 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
   };
 
   const deleteRecording = async () => {
+    errorTap();
     if (sound) {
       await sound.unloadAsync();
       setSound(null);
     }
     setIsPlaying(false);
     onAudioRecorded(undefined);
+  };
+
+  const formatSeconds = (sec: number) => {
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    return `${m}:${s < 10 ? '0' : ''}${s}`;
   };
 
   return (
@@ -112,7 +144,9 @@ export const AudioRecorder: React.FC<AudioRecorderProps> = ({
           {isRecording ? (
             <>
               <Square size={20} color={Colors.white} />
-              <Text style={styles.recordTextWhite}>{t.recordingActive}</Text>
+              <Text style={styles.recordTextWhite}>
+                {t.recordingActive} ({formatSeconds(recordSeconds)})
+              </Text>
             </>
           ) : (
             <>
