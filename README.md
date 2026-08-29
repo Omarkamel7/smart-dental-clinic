@@ -1,8 +1,8 @@
 # Smart Dental Clinic
 
-[![Download APK](https://img.shields.io/badge/Download-Android%20APK%20v1.4.0-0284c7?style=for-the-badge&logo=android)](https://expo.dev/accounts/omarsala7s-team/projects/smart-dental-clinic/builds/a9b1bb50-c5b9-4012-9162-404c338786a1)
+[![Download APK](https://img.shields.io/badge/Download-Android%20APK%20v1.4.0-0284c7?style=for-the-badge&logo=android)](https://expo.dev/accounts/omarsala7s-team/projects/smart-dental-clinic/builds/334ff61d-f1ef-4ba0-a2a3-1fcaf5176280)
 
-> 📲 **Latest Android APK (v1.4.0)**: [Click here to download & install](https://expo.dev/accounts/omarsala7s-team/projects/smart-dental-clinic/builds/a9b1bb50-c5b9-4012-9162-404c338786a1)
+> 📲 **Latest Android APK (v1.4.0)**: [Click here to download & install](https://expo.dev/accounts/omarsala7s-team/projects/smart-dental-clinic/builds/334ff61d-f1ef-4ba0-a2a3-1fcaf5176280)
 
 Smart Dental Clinic is an advanced cross-platform dental telemedicine and clinic management application built with React Native and Expo. It provides interactive dental triage, patient-doctor communication channels, appointment workflows, and a clinic administration portal backed by Supabase.
 
